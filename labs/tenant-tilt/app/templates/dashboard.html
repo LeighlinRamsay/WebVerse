@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h1 class="h3 mb-1">Sales Dashboard</h1>
+    <div class="text-muted">Overview · {{ tenant_name }}</div>
+  </div>
+  <a class="btn btn-primary" href="/dashboard/invoices">View invoices</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Monthly Recurring Revenue</div>
+        <div class="h4 mb-0">$12,490</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Open Invoices</div>
+        <div class="h4 mb-0">3</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Churn Risk</div>
+        <div class="h4 mb-0">Low</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h2 class="h6">Activity</h2>
+    <p class="text-muted mb-0">Billing activity and payment events will appear here.</p>
+  </div>
+</div>
+{% endblock %}

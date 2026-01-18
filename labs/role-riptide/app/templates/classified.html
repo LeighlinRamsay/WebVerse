@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <h1 class="h5">Classified Projects</h1>
+    <p class="text-muted mb-3">Restricted engagements. Handle with care.</p>
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="p-3 border rounded bg-white">
+          <div class="fw-semibold">Tax Records</div>
+          <pre id="tax" class="mt-2 small bg-light p-2 rounded" style="max-height: 260px; overflow:auto;">Loading…</pre>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="p-3 border rounded bg-white">
+          <div class="fw-semibold">Client Registry (PII)</div>
+          <pre id="pii" class="mt-2 small bg-light p-2 rounded" style="max-height: 260px; overflow:auto;">Loading…</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <a class="btn btn-outline-secondary" href="/dashboard">Back</a>
+    </div>
+  </div>
+</div>
+
+<script>
+async function load() {
+  const a = await fetch("{{ api_base }}/admin/records", {credentials:"same-origin"});
+  document.getElementById("tax").textContent = a.ok ? JSON.stringify(await a.json(), null, 2) : await a.text();
+
+  const b = await fetch("{{ api_base }}/admin/information", {credentials:"same-origin"});
+  document.getElementById("pii").textContent = b.ok ? JSON.stringify(await b.json(), null, 2) : await b.text();
+}
+load();
+</script>
+{% endblock %}

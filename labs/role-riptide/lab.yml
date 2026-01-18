@@ -1,0 +1,8 @@
+id: role-riptide
+name: Role Riptide
+difficulty: easy
+description: Accounting PM portal with a mass-assignment role escalation that unlocks classified client projects.
+compose_file: docker-compose.yml
+entrypoint:
+  base_url: http://localhost:8092
+flag_sha256: "dda84f30319fd94607860c020226b948a47e34d29f1d2bb413f3e8c9399eae66"

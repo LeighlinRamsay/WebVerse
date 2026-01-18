@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-4">
+  <h1 class="h3 mb-1">Foreign Business Partners</h1>
+  <div class="text-secondary">Cross-border settlement contacts and liaison records.</div>
+</div>
+
+<div class="pp-card p-3">
+  <div id="partnerGrid" class="row g-3"></div>
+</div>
+
+<script>
+(async function () {
+  const res = await fetch("/api/v1/admin/partnerdata", { credentials: "include" });
+  if (!res.ok) {
+    document.getElementById("partnerGrid").innerHTML = '<div class="text-secondary">Unable to load partner records.</div>';
+    return;
+  }
+  const data = await res.json();
+  const items = data.items || [];
+  const grid = document.getElementById("partnerGrid");
+
+  grid.innerHTML = items.map(p => `
+    <div class="col-lg-6">
+      <div class="pp-partner p-3 h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="h5 mb-1">${p.name}</div>
+            <div class="text-secondary small">${p.email} • ${p.phone}</div>
+          </div>
+          <span class="badge pp-badge">Partner</span>
+        </div>
+        <div class="mt-3">${p.description}</div>
+      </div>
+    </div>
+  `).join("");
+})();
+</script>
+{% endblock %}

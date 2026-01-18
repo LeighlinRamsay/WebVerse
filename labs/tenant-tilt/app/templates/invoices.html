@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h1 class="h4 mb-1">Invoices</h1>
+    <div class="text-muted">Your billing history</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Status</th>
+                <th class="text-end">Amount</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for inv in invoices %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ inv["title"] }}</div>
+                  <div class="text-muted small">{{ inv["invoice_number"] }} · ID {{ inv["id"] }}</div>
+                </td>
+                <td>
+                  <span class="badge {% if inv['status']=='paid' %}text-bg-success{% else %}text-bg-warning{% endif %}">
+                    {{ inv["status"] }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  {{ "%.2f"|format(inv["amount_cents"]/100) }} {{ inv["currency"] }}
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-primary"
+                          onclick="viewInvoice({{ inv['id'] }})">
+                    View
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+              {% if invoices|length == 0 %}
+              <tr><td colspan="4" class="text-muted">No invoices yet.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h6 mb-3">Invoice details</h2>
+        <div id="details" class="text-muted">Select an invoice to view details.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  async function viewInvoice(id) {
+    const details = document.getElementById("details");
+    details.innerHTML = '<div class="text-muted">Loading…</div>';
+
+    try {
+      const resp = await fetch("{{ api_base }}/invoices/" + id, { credentials: "same-origin" });
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        details.innerHTML = '<div class="text-danger">Error: ' + esc(data.detail || "Request failed") + "</div>";
+        return;
+      }
+
+      const lines = (data.line_items || []).map(li => `
+        <tr>
+          <td>${esc(li.sku)}</td>
+          <td>${esc(li.description)}</td>
+          <td class="text-end">${esc(li.qty)}</td>
+          <td class="text-end">$${(li.total_cents/100).toFixed(2)}</td>
+        </tr>
+      `).join("");
+
+      details.innerHTML = `
+        <div class="mb-2">
+          <div class="fw-semibold">${esc(data.title)}</div>
+          <div class="text-muted small">${esc(data.invoice_number)} · ID ${esc(data.id)}</div>
+        </div>
+
+        <div class="row g-2 small mb-3">
+          <div class="col-6"><span class="text-muted">Billed To:</span><br>${esc(data.billed_to)}</div>
+          <div class="col-6"><span class="text-muted">Tenant:</span><br>${esc(data.tenant_name)}</div>
+          <div class="col-6"><span class="text-muted">Issued:</span><br>${esc(data.issued_at)}</div>
+          <div class="col-6"><span class="text-muted">Due:</span><br>${esc(data.due_at)}</div>
+        </div>
+
+        <div class="table-responsive mb-3">
+          <table class="table table-sm">
+            <thead>
+              <tr><th>SKU</th><th>Description</th><th class="text-end">Qty</th><th class="text-end">Total</th></tr>
+            </thead>
+            <tbody>${lines}</tbody>
+          </table>
+        </div>
+
+        <div class="small">
+          <div class="text-muted">Notes</div>
+          <pre class="bg-light p-2 rounded border" style="white-space: pre-wrap;">${esc(data.notes)}</pre>
+        </div>
+      `;
+    } catch (e) {
+      details.innerHTML = '<div class="text-danger">Network error.</div>';
+    }
+  }
+</script>
+{% endblock %}

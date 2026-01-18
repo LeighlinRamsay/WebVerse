@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="text-muted small">User</div>
+        <div class="h5 mb-0">{{ user.name }}</div>
+        <div class="small text-muted">{{ user.email }}</div>
+        <div class="mt-2">
+          <span class="badge text-bg-secondary">role: {{ user.role }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-group shadow-sm">
+      <a class="list-group-item list-group-item-action" href="/dashboard">Dashboard</a>
+      <a class="list-group-item list-group-item-action" href="/dashboard/billing">Billing</a>
+      <a class="list-group-item list-group-item-action" href="/dashboard/settings">Account Settings</a>
+      {% if user.role == "admin" %}
+        <a class="list-group-item list-group-item-action list-group-item-warning" href="/dashboard/classified">
+          Classified Projects
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h1 class="h5">Profile</h1>
+        <p class="text-muted mb-4">
+          View your workspace identity and contact details.
+        </p>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-white">
+              <div class="text-muted small">Full name</div>
+              <div class="fw-semibold">{{ user.name }}</div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-white">
+              <div class="text-muted small">Email</div>
+              <div class="fw-semibold">{{ user.email }}</div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-white">
+              <div class="text-muted small">Phone</div>
+              <div class="fw-semibold">
+                {% if user.phone and user.phone|length > 0 %}
+                  {{ user.phone }}
+                {% else %}
+                  <span class="text-muted">Not set</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-white">
+              <div class="text-muted small">Access level</div>
+              <div class="fw-semibold text-capitalize">{{ user.role }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <a class="btn btn-primary" href="/dashboard/settings">Edit profile</a>
+          <a class="btn btn-outline-secondary ms-2" href="/dashboard">Back</a>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="small text-muted">
+          LedgerWorks follows least-privilege access. If you believe your access level is incorrect, contact your admin team.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

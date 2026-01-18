@@ -1,0 +1,15 @@
+services:
+  web:
+    build: ./app
+    ports:
+      - "8090:8000"
+    environment:
+      DB_PATH: /data/apiverse.db
+      SESSION_SECRET: "change-me-in-prod"
+      SEED_FLAG: "APIVERSE{t3n4nt_t1lt_1d0r_0wn3d}"
+      SEED_INVOICE_ID: "564"
+    volumes:
+      - apiverse_tenant_tilt_data:/data
+
+volumes:
+  apiverse_tenant_tilt_data:

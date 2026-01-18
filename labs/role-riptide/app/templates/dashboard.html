@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="text-muted small">Workspace</div>
+        <div class="h5 mb-0">{{ user.name }}</div>
+        <div class="small text-muted">{{ user.email }}</div>
+        <div class="mt-2">
+          <span class="badge text-bg-secondary">role: {{ user.role }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-group shadow-sm">
+      <a class="list-group-item list-group-item-action" href="/dashboard/profile">Profile</a>
+      <a class="list-group-item list-group-item-action" href="/dashboard/billing">Billing</a>
+      <a class="list-group-item list-group-item-action" href="/dashboard/settings">Account Settings</a>
+      {% if user.role == "admin" %}
+        <a class="list-group-item list-group-item-action list-group-item-warning" href="/dashboard/classified">
+          Classified Projects
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h2 class="h5">Active engagements</h2>
+        <p class="text-muted mb-0">
+          Track internal accounting projects, milestones, and client deliverables.
+        </p>
+        <hr>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-white">
+              <div class="fw-semibold">Quarterly Close Support</div>
+              <div class="text-muted small">Status: In progress</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-white">
+              <div class="fw-semibold">Audit Prep - 2025</div>
+              <div class="text-muted small">Status: Planning</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

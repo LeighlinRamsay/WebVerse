@@ -1,0 +1,13 @@
+id: tenant-tilt
+name: Tenant Tilt
+difficulty: easy
+description: "Multi-tenant billing portal with a broken object-level authorization check in invoice retrieval."
+compose_file: docker-compose.yml
+entrypoint:
+  base_url: "http://localhost:8090"
+tags:
+  - idor
+  - bola
+  - multi-tenant
+  - api
+flag_sha256: "478b68a1b8d08bd398fb12ba11bdd2b65d2e0646f70a69f19d7c096fa88d750d"
