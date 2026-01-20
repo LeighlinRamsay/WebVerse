@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Reports · Generator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg0:#05030a;
+      --bg1:#0b0716;
+      --panel: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --p0:#6d28d9;
+      --p1:#8b5cf6;
+      --p2:#a78bfa;
+    }
+
+    body{
+      color: var(--text);
+      background:
+        radial-gradient(850px 480px at 25% 0%, rgba(139,92,246,.16), rgba(0,0,0,0) 60%),
+        radial-gradient(750px 420px at 90% 15%, rgba(167,139,250,.10), rgba(0,0,0,0) 62%),
+        linear-gradient(180deg, rgba(11,7,22,.88) 0%, rgba(5,3,10,1) 70%),
+        var(--bg0);
+      min-height: 100vh;
+    }
+
+    .wrap{ max-width: 980px; }
+
+    .shell{
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      box-shadow: 0 18px 70px rgba(0,0,0,.55);
+      overflow: hidden;
+    }
+
+    .shell-head{
+      padding: 16px 18px;
+      background: rgba(0,0,0,.22);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display:flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pill{
+      font-size: .84rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(167,139,250,.28);
+      background: rgba(109,40,217,.14);
+      color: rgba(255,255,255,.78);
+      white-space: nowrap;
+    }
+
+    .shell-body{ padding: 18px; }
+
+    .muted{ color: var(--muted); }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+
+    .form-label{
+      color: rgba(255,255,255,.72);
+      font-size: .92rem;
+      margin-bottom: 8px;
+    }
+
+    .form-control{
+      background: rgba(5,3,10,.55);
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.35);
+    }
+    .form-control::placeholder{ color: rgba(255,255,255,.35); }
+    .form-control:focus{
+      background: rgba(5,3,10,.62);
+      border-color: rgba(167,139,250,.55);
+      box-shadow: 0 0 0 .25rem rgba(167,139,250,.14);
+      color: var(--text);
+    }
+
+    .btn-generate{
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight: 900;
+      letter-spacing: .01em;
+      color: white;
+      background: linear-gradient(135deg, rgba(167,139,250,.95) 0%, rgba(109,40,217,.98) 70%);
+      box-shadow:
+        0 18px 55px rgba(109,40,217,.22),
+        inset 0 0 0 1px rgba(255,255,255,.10);
+      transition: transform .10s ease, filter .10s ease;
+    }
+    .btn-generate:hover{ filter: brightness(1.04); transform: translateY(-1px); }
+    .btn-generate:active{ transform: translateY(0px); }
+
+    a.back{
+      color: rgba(255,255,255,.75);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(167,139,250,.35);
+    }
+    a.back:hover{ color: rgba(255,255,255,.90); }
+  </style>
+</head>
+
+<body>
+  <div class="container py-5 wrap">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+      <div>
+        <div class="mono muted" style="font-size:.9rem;">reports.astercheck.local</div>
+        <h2 class="mb-1" style="letter-spacing:-.02em;">Generate Report</h2>
+        <div class="muted">Internal compliance format · template rendered export</div>
+      </div>
+      <div class="text-end">
+        <div class="pill mono">export: v1</div>
+        <div class="mt-2"><a class="back" href="/">← Back</a></div>
+      </div>
+    </div>
+
+    <div class="shell">
+      <div class="shell-head">
+        <div class="mono" style="opacity:.85;">report.generator</div>
+        <div class="pill mono">Status: Ready to Render!</div>
+      </div>
+
+      <div class="shell-body">
+        <form method="post">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Created by</label>
+              <input class="form-control" name="created_by" placeholder="Jane D. (SecOps)">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">For network</label>
+              <input class="form-control" name="for_network" placeholder="10.0.0.0/16">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Date of creation</label>
+              <input class="form-control" name="date_of_creation" placeholder="2026-01-20">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Internal use</label>
+              <input class="form-control" name="internal_use" placeholder="true">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Company</label>
+              <input class="form-control" name="company" placeholder="AsterCheck">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date of last report</label>
+              <input class="form-control" name="date_of_last_report" placeholder="2025-12-04">
+            </div>
+          </div>
+
+          <button class="btn btn-generate mt-4 w-100">Generate Export</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

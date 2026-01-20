@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>canary-code · {{ repo }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root{
+      --bg0:#07060c; --bg1:#0f0a18;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+      --muted2: rgba(255,255,255,.44);
+      --p1:#7c3aed; --p2:#a78bfa;
+    }
+    body{
+      background:
+        radial-gradient(1100px 650px at 18% 12%, rgba(124,58,237,.14) 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      color: var(--text);
+      min-height:100vh;
+    }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
+    a{ color: rgba(167,139,250,.95); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+
+    .topnav{
+      position: sticky; top:0; z-index:20;
+      background: rgba(7,6,12,.70);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .navwrap{ max-width: 1200px; margin:0 auto; padding: 14px 18px; display:flex; gap:14px; align-items:center; }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; }
+    .dot{ width:11px; height:11px; border-radius:999px; background: linear-gradient(180deg, var(--p2), var(--p1)); box-shadow: 0 0 0 3px rgba(124,58,237,.18); }
+
+    .wrap{ max-width: 1200px; margin: 0 auto; padding: 26px 18px 60px; }
+
+    .crumb{ color: var(--muted); font-size:.95rem; }
+    .crumb b{ color: var(--text); }
+
+    .cardx{
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 18px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
+    }
+
+    .btnx{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.86);
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-weight: 700;
+    }
+    .btnx:hover{ filter: brightness(1.02); }
+
+    .btnAccent{
+      border:0;
+      background: linear-gradient(90deg, var(--p2), var(--p1));
+      color:#0b0712;
+    }
+
+    .tableFiles{
+      width:100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow:hidden;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .tableFiles td{
+      padding: 12px 14px;
+      border-top:1px solid rgba(255,255,255,.08);
+      color: rgba(255,255,255,.84);
+      vertical-align: middle;
+    }
+    .tableFiles tr:first-child td{ border-top:0; }
+    .muted{ color: var(--muted); }
+    .muted2{ color: var(--muted2); }
+
+    .codebox{
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="topnav">
+    <div class="navwrap">
+      <div class="brand">
+        <span class="dot"></span>
+        <span>canary-code</span>
+      </div>
+      <div class="mono muted2" style="font-size:.9rem;">repo</div>
+      <div class="ms-auto d-flex gap-2">
+        <a class="btnx mono" href="/">Home</a>
+        <span class="btnx mono">Branch: main</span>
+        <span class="btnx mono">Read-only</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <div>
+        <div class="crumb mono">
+          <a href="/" class="muted2">canary</a>
+          <span class="muted2">/</span>
+          <b>{{ repo }}</b>
+        </div>
+        <div class="muted">Canary mirror · commit history and file snapshots</div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button class="btnx mono" disabled>Pull requests</button>
+        <button class="btnx mono" disabled>Issues</button>
+        <button class="btnx btnAccent mono" disabled>New PR</button>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="cardx p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="mono muted2">Files</div>
+            <div class="mono muted2">latest: {{ commits[0].sha if commits and commits|length > 0 else "—" }}</div>
+          </div>
+
+          <table class="tableFiles">
+            <tr>
+              <td class="mono">app/</td>
+              <td class="muted2">fetch gateway + signer + preview UI</td>
+              <td class="mono muted2 text-end">—</td>
+            </tr>
+            <tr>
+              <td class="mono">services/</td>
+              <td class="muted2">internal consoles, reports generator</td>
+              <td class="mono muted2 text-end">—</td>
+            </tr>
+            <tr>
+              <td class="mono">README.md</td>
+              <td class="muted2">deployment notes (canary)</td>
+              <td class="mono muted2 text-end">—</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="cardx p-3 mt-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="mono muted2">Clone</div>
+            <div class="mono muted2">HTTPS</div>
+          </div>
+          <div class="codebox mono" style="font-size:.95rem;">
+            https://canary-code.astercheck.local/{{ repo }}.git
+          </div>
+          <div class="muted2 mt-2" style="font-size:.92rem;">
+            This is a read-only canary mirror. Write access is disabled.
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="cardx p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="mono muted2">Commits</div>
+            <div class="mono muted2">{{ commits|length }} total</div>
+          </div>
+
+          {% for c in commits %}
+            <div class="py-2" style="border-top:1px solid rgba(255,255,255,.08);">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div style="font-weight:750;">{{ c.title }}</div>
+                  <div class="mono muted2" style="font-size:.9rem;">{{ c.sha }}</div>
+                </div>
+                <a class="mono" href="/repo/{{ repo }}/commit/{{ c.sha }}">view</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

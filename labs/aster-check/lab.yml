@@ -1,0 +1,8 @@
+id: aster-check
+name: Aster Check
+difficulty: master
+description: Signed-URL fetch gateway with legacy v1 signing oracle, internal ops console SQLi, restricted SSTI env leak, and a canary code host that leaks the signing key in git history.
+compose_file: docker-compose.yml
+entrypoint:
+  base_url: http://app.astercheck.local
+flag_sha256: "cad9d4ae1785f8d79adf9f6e721645d75250f1d9fd497ecbf171bc29af5eecad"
