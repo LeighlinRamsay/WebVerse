@@ -314,10 +314,9 @@ def cmd_list(labs: Dict[str, Lab], args: argparse.Namespace) -> int:
         groups[d].sort(key=lambda x: x.id)
 
     def print_lab(l: Lab) -> None:
-        desc = f" - {l.description}" if l.description else ""
         mark = "✓" if l.id in solved else " "
         colored_name = colorize_name(l.name, l.difficulty)
-        print(f"  {mark} {l.id}: {colored_name}{desc}")
+        print(f"  {mark} {l.id}: {colored_name}")
 
     if wanted:
         print(f"{wanted.upper()} labs:")

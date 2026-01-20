@@ -101,13 +101,13 @@ async def probe(request: Request):
 
     # grep returns 1 when it finds nothing — that should NOT be a 500
     if result.returncode == 1 or not out:
-        return {"command": cmd, "output": "No such game process!"}
+        return {"output": "No such game process!"}
 
     # If ps/grep actually failed (missing binary, bad flags, etc.)
     if result.returncode != 0:
         return JSONResponse(
-            {"command": cmd, "error": "probe command failed", "output": out[:4000]},
+            {"error": "probe command failed", "output": out[:4000]},
             status_code=200,  # keep it non-500 for the lab
         )
 
-    return {"command": cmd, "output": out[:4000]}
+    return {"output": out[:4000]}

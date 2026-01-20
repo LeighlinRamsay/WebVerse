@@ -1,0 +1,10 @@
+id: leak-lore
+name: Leak Lore
+difficulty: hard
+description: >
+  Chain: Unauthenticated order-tracking BOLA leaks customer creds -> discover hidden /login on store ->
+  login posts to auth-user API -> invoice downloader URL pivot to auth-admin backup leak -> prod-handler command injection -> flag.
+compose_file: docker-compose.yml
+entrypoint:
+  base_url: http://leaklore.local/
+flag_sha256: "5e9d43ed5a36f8b740b1756be322e896c2477285797442ad113d23759cd844b3"
