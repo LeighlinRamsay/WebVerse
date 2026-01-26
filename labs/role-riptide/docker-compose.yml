@@ -5,7 +5,7 @@ services:
     environment:
       - DB_PATH=/data/apiverse.db
       - JWT_SECRET=dev-jwt-secret-change-me
-      - FLAG=APIVERSE{r0l3_r1pp3d_4dm1n_unl0ck}
+      - FLAG=WEBVERSE{r0l3_r1pp3d_4dm1n_unl0ck}
     ports:
       - "8092:8092"
     volumes:

@@ -16,7 +16,7 @@ API_BASE = "/api/v1"
 
 DB_PATH = os.getenv("DB_PATH", "/data/apiverse.db")
 JWT_SECRET = os.getenv("JWT_SECRET", "dev-jwt-secret")
-FLAG = os.getenv("FLAG", "APIVERSE{dev_flag}")
+FLAG = os.getenv("FLAG", "WEBVERSE{dev_flag}")
 
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))

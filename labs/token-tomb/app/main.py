@@ -19,7 +19,7 @@ API_BASE = "/api/v1"
 
 DB_PATH = os.getenv("DB_PATH", "/data/pulsepay.db")
 JWT_SECRET = os.getenv("JWT_SECRET", "pulsepay-dev-secret")
-FLAG = os.getenv("FLAG", "APIVERSE{t0k3n_t0mb_4lg_n0n3}")
+FLAG = os.getenv("FLAG", "WEBVERSE{t0k3n_t0mb_4lg_n0n3}")
 
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))

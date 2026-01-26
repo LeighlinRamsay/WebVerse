@@ -14,7 +14,7 @@ JWT_SECRET = os.getenv("INTERNAL_JWT_SECRET", "internal-dev-secret")
 
 INTERNAL_USER = os.getenv("INTERNAL_USER", "svc-exporter")
 INTERNAL_PASS = os.getenv("INTERNAL_PASS", "Spring2026!RotateMe")
-FLAG = os.getenv("FLAG", "APIVERSE{missing-flag}")
+FLAG = os.getenv("FLAG", "WEBVERSE{missing-flag}")
 
 app = FastAPI(title="Zipline Internal API", version="2.0.0", docs_url=None, redoc_url=None)
 

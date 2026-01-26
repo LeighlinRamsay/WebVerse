@@ -5,4 +5,4 @@ description: "PulsePay console uses JWTs but accepts alg=none, allowing role esc
 compose_file: docker-compose.yml
 entrypoint:
   base_url: http://localhost:8091
-flag_sha256: e16a870575d7b5492a3e064b0931141ba9526f5cc167332b0fd45e66a4b401d8
+flag_sha256: 8eed89b975b1b80a2397535d5f4ecff57c5956a4027ec08ded3b8f31c3239518

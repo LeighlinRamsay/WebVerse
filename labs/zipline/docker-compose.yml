@@ -31,7 +31,7 @@ services:
       INTERNAL_JWT_SECRET: "zipline-internal-dev-secret"
       INTERNAL_USER: "svc-exporter"
       INTERNAL_PASS: "Spring2026!RotateMe"
-      FLAG: "APIVERSE{z1pl1n3_d0wnl04d_b0l4_p1v0t}"
+      FLAG: "WEBVERSE{z1pl1n3_d0wnl04d_b0l4_p1v0t}"
       DB_PATH: /data/internal.db
     volumes:
       - zipline_data:/data

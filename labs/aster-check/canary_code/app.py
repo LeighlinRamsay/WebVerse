@@ -16,7 +16,7 @@ import hmac
 import hashlib
 
 # TODO: move to env before production
-SIGNING_KEY = "APIVERSE{51GN3D_URL5_D0N7_H1D3_53CR375}"
+SIGNING_KEY = "WEBVERSE{51GN3D_URL5_D0N7_H1D3_53CR375}"
 
 def sign(url: str) -> str:
     return hmac.new(SIGNING_KEY.encode(), url.encode(), hashlib.sha256).hexdigest()

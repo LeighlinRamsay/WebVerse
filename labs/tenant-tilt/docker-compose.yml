@@ -6,7 +6,7 @@ services:
     environment:
       DB_PATH: /data/apiverse.db
       SESSION_SECRET: "change-me-in-prod"
-      SEED_FLAG: "APIVERSE{t3n4nt_t1lt_1d0r_0wn3d}"
+      SEED_FLAG: "WEBVERSE{t3n4nt_t1lt_1d0r_0wn3d}"
       SEED_INVOICE_ID: "564"
     volumes:
       - apiverse_tenant_tilt_data:/data

@@ -9,7 +9,7 @@ services:
       - APP_ENV=production
       - JWT_SECRET=dev-jwt-secret-should-not-leak
       - INTERNAL_ADMIN_URL=http://admin-internal:9000
-      - FLAG=APIverse{tricky_tunnels_info_disclosure}
+      - FLAG=WEBVERSE{tricky_tunnels_info_disclosure}
       - DATA_DIR=/data
     volumes:
       - data:/data

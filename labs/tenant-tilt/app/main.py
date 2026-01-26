@@ -17,7 +17,7 @@ API_BASE = "/api/v1"
 DB_PATH = os.getenv("DB_PATH", "/data/apiverse.db")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "dev-session-secret")
 
-SEED_FLAG = os.getenv("SEED_FLAG", "APIVERSE{t3n4nt_t1lt_1d0r_0wn3d}")
+SEED_FLAG = os.getenv("SEED_FLAG", "WEBVERSE{t3n4nt_t1lt_1d0r_0wn3d}")
 SEED_INVOICE_ID = int(os.getenv("SEED_INVOICE_ID", "564"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

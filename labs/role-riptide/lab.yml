@@ -5,4 +5,4 @@ description: Accounting PM portal with a mass-assignment role escalation that un
 compose_file: docker-compose.yml
 entrypoint:
   base_url: http://localhost:8092
-flag_sha256: "dda84f30319fd94607860c020226b948a47e34d29f1d2bb413f3e8c9399eae66"
+flag_sha256: "a1162e16b8e40c69efc192aaf8e9dd878ba7c5a0d62c20168e6695af8463ca36"

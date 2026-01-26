@@ -5,4 +5,4 @@ description: Signed-URL fetch gateway with legacy v1 signing oracle, internal op
 compose_file: docker-compose.yml
 entrypoint:
   base_url: http://app.astercheck.local
-flag_sha256: "cad9d4ae1785f8d79adf9f6e721645d75250f1d9fd497ecbf171bc29af5eecad"
+flag_sha256: "8c2882661223365af56e7297e06747b7d14443d1a1757653cdcf493257b9f09f"

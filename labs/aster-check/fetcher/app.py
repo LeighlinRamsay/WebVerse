@@ -6,7 +6,7 @@ import requests
 
 app = Flask(__name__)
 
-SIGNING_KEY = "APIVERSE{51GN3D_URL5_D0N7_H1D3_53CR375}"
+SIGNING_KEY = "WEBVERSE{51GN3D_URL5_D0N7_H1D3_53CR375}"
 
 INTERNAL_HOST_MAP = {
     "reports.astercheck.local": "http://reports:8000",

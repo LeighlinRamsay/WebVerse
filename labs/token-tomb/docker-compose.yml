@@ -6,7 +6,7 @@ services:
     environment:
       - DB_PATH=/data/pulsepay.db
       - JWT_SECRET=pulsepay-dev-secret
-      - FLAG=APIVERSE{t0k3n_t0mb_4lg_n0n3}
+      - FLAG=WEBVERSE{t0k3n_t0mb_4lg_n0n3}
     volumes:
       - token_tomb_data:/data
 
