@@ -1,11 +1,14 @@
 # gui/views/lab_detail.py
 from __future__ import annotations
+
+import os
 import math
 from typing import Optional
 
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel,
-    QPushButton, QLineEdit, QTextEdit, QTabWidget, QSplitter, QToolButton, QStyle, QSizePolicy, QStackedWidget, QGraphicsDropShadowEffect
+    QPushButton, QLineEdit, QTextEdit, QTabWidget, QSplitter, QToolButton, QStyle, QSizePolicy, QStackedWidget, QGraphicsDropShadowEffect,
+    QScrollArea
 )
 
 from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal, QUrl, QTimer, QEvent, QSize, QRect, QRectF, QPoint
@@ -54,6 +57,72 @@ def _section(title: str):
         h.setObjectName("SectionTitle")
         l.addWidget(h)
     return f, l
+
+
+def _info_card(title: str) -> tuple[QFrame, QVBoxLayout]:
+    card = QFrame()
+    card.setObjectName("InfoCard")
+    card.setAttribute(Qt.WA_StyledBackground, True)
+    lay = QVBoxLayout(card)
+    lay.setContentsMargins(14, 14, 14, 14)
+    lay.setSpacing(10)
+
+    if title:
+        h = QLabel(title)
+        h.setObjectName("InfoSectionTitle")
+        lay.addWidget(h)
+
+    return card, lay
+
+
+def _info_divider() -> QFrame:
+    d = QFrame()
+    d.setObjectName("InfoDivider")
+    d.setFixedHeight(1)
+    d.setAttribute(Qt.WA_StyledBackground, True)
+    return d
+
+
+def _icon_btn(obj: str, tooltip: str, icon: QIcon) -> QToolButton:
+    b = QToolButton()
+    b.setObjectName(obj)
+    b.setCursor(Qt.PointingHandCursor)
+    b.setToolTip(tooltip)
+    b.setAutoRaise(True)
+    b.setToolButtonStyle(Qt.ToolButtonIconOnly)
+    b.setFixedSize(34, 34)
+    b.setIconSize(QSize(18, 18))
+    b.setIcon(icon)
+    return b
+
+
+def _kv_row(key: str, mono: bool = False) -> tuple[QFrame, QLabel, QHBoxLayout]:
+    """
+    Returns (row_frame, value_label, right_layout_for_buttons)
+    """
+    row = QFrame()
+    row.setObjectName("InfoRow")
+    row.setAttribute(Qt.WA_StyledBackground, True)
+
+    h = QHBoxLayout(row)
+    h.setContentsMargins(12, 10, 12, 10)
+    h.setSpacing(10)
+
+    k = QLabel(key)
+    k.setObjectName("InfoKey")
+    h.addWidget(k, 0)
+
+    v = QLabel("—")
+    v.setObjectName("InfoMono" if mono else "InfoValue")
+    v.setTextInteractionFlags(Qt.TextSelectableByMouse)
+    v.setWordWrap(True)
+    h.addWidget(v, 1)
+
+    right = QHBoxLayout()
+    right.setSpacing(8)
+    h.addLayout(right, 0)
+
+    return row, v, right
 
 class _MiniSpinner(QWidget):
     def __init__(self, parent=None, size=22):
@@ -660,14 +729,128 @@ class LabDetailView(QWidget):
         self.info = QWidget()
         inf = QVBoxLayout(self.info)
         inf.setContentsMargins(0, 0, 0, 0)
-        inf.setSpacing(10)
+        inf.setSpacing(0)
 
-        self.info_text = QTextEdit()
-        self.info_text.setObjectName("InfoBox")
-        self.info_text.setReadOnly(True)
-        self.info_text.setProperty("noAmberFocus", True)
-        self.info_text.setFocusPolicy(Qt.NoFocus)
-        inf.addWidget(self.info_text, 1)
+        self.info_scroll = QScrollArea()
+        self.info_scroll.setObjectName("InfoScroll")
+        self.info_scroll.setWidgetResizable(True)
+        self.info_scroll.setFrameShape(QFrame.NoFrame)
+        inf.addWidget(self.info_scroll, 1)
+
+        info_root = QWidget()
+        info_root.setObjectName("InfoRoot")
+        self.info_scroll.setWidget(info_root)
+
+        info = QVBoxLayout(info_root)
+        info.setContentsMargins(14, 14, 14, 14)
+        info.setSpacing(12)
+
+        # --- Top summary bar ---
+        summary, s_l = _info_card("")
+        summary.setObjectName("InfoSummaryCard")
+        info.addWidget(summary, 0)
+
+        sum_row = QHBoxLayout()
+        sum_row.setSpacing(10)
+
+        self.info_title = QLabel("Lab Details")
+        self.info_title.setObjectName("InfoSummaryTitle")
+        sum_row.addWidget(self.info_title, 1)
+
+        self.info_pill = QLabel("—")
+        self.info_pill.setObjectName("InfoPill")
+        sum_row.addWidget(self.info_pill, 0, Qt.AlignRight)
+
+        s_l.addLayout(sum_row)
+        s_l.addWidget(_info_divider())
+
+        self.info_sub = QLabel("—")
+        self.info_sub.setObjectName("InfoSummarySub")
+        self.info_sub.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        s_l.addWidget(self.info_sub)
+
+        # --- Two-column cards ---
+        cols = QHBoxLayout()
+        cols.setSpacing(12)
+        info.addLayout(cols, 0)
+
+        # Left: Details card
+        details_card, d = _info_card("Details")
+        cols.addWidget(details_card, 3)
+
+        self._info_rows = {}
+
+        r, v, right = _kv_row("Name")
+        d.addWidget(r); self._info_rows["name"] = v
+
+        r, v, right = _kv_row("ID", mono=True)
+        d.addWidget(r); self._info_rows["id"] = v
+        btn = _icon_btn("InfoCopyBtn", "Copy ID", _make_copy_icon(QColor(245, 197, 66), 18))
+        right.addWidget(btn)
+        btn.clicked.connect(lambda: self._info_copy("id"))
+
+        r, v, right = _kv_row("Difficulty")
+        d.addWidget(r); self._info_rows["difficulty"] = v
+
+        r, v, right = _kv_row("Path", mono=True)
+        d.addWidget(r); self._info_rows["path"] = v
+        btn = _icon_btn("InfoCopyBtn", "Copy Path", _make_copy_icon(QColor(245, 197, 66), 18))
+        right.addWidget(btn)
+        btn.clicked.connect(lambda: self._info_copy("path"))
+
+        r, v, right = _kv_row("Compose", mono=True)
+        d.addWidget(r); self._info_rows["compose"] = v
+        btn = _icon_btn("InfoCopyBtn", "Copy Compose File", _make_copy_icon(QColor(245, 197, 66), 18))
+        right.addWidget(btn)
+        btn.clicked.connect(lambda: self._info_copy("compose"))
+
+        r, v, right = _kv_row("Entrypoint", mono=True)
+        d.addWidget(r); self._info_rows["entrypoint"] = v
+
+        copy_ep = _icon_btn("InfoCopyBtn", "Copy Entrypoint", _make_copy_icon(QColor(245, 197, 66), 18))
+        right.addWidget(copy_ep)
+        copy_ep.clicked.connect(lambda: self._info_copy("entrypoint"))
+
+        open_ep = _icon_btn("InfoOpenBtn", "Open Entrypoint", self.style().standardIcon(QStyle.SP_DialogOpenButton))
+        right.addWidget(open_ep)
+        open_ep.clicked.connect(self._info_open_entrypoint)
+
+        # Right: Quick actions card
+        actions_card, a = _info_card("Quick Actions")
+        cols.addWidget(actions_card, 2)
+
+        self.info_action_open_folder = QPushButton("Open Lab Folder")
+        self.info_action_open_folder.setObjectName("GhostButton")
+        self.info_action_open_folder.setCursor(Qt.PointingHandCursor)
+        a.addWidget(self.info_action_open_folder)
+
+        self.info_action_open_compose = QPushButton("Open docker-compose.yml")
+        self.info_action_open_compose.setObjectName("GhostButton")
+        self.info_action_open_compose.setCursor(Qt.PointingHandCursor)
+        a.addWidget(self.info_action_open_compose)
+
+        self.info_action_copy_all = QPushButton("Copy All Details")
+        self.info_action_copy_all.setObjectName("PrimaryButton")
+        self.info_action_copy_all.setCursor(Qt.PointingHandCursor)
+        a.addWidget(self.info_action_copy_all)
+
+        a.addStretch(1)
+
+        self.info_action_open_folder.clicked.connect(self._info_open_folder)
+        self.info_action_open_compose.clicked.connect(self._info_open_compose)
+        self.info_action_copy_all.clicked.connect(self._info_copy_all)
+
+        # --- Description card (full width) ---
+        desc_card, dc = _info_card("Description")
+        info.addWidget(desc_card, 0)
+
+        self.info_desc = QLabel("—")
+        self.info_desc.setObjectName("InfoDesc")
+        self.info_desc.setWordWrap(True)
+        self.info_desc.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        dc.addWidget(self.info_desc)
+
+        info.addStretch(1)
 
         self.tabs.addTab(self.info, "Info")
 
@@ -822,6 +1005,80 @@ class LabDetailView(QWidget):
 
         self._set_actions_enabled(False)
 
+    # ---------- Info Tab helpers ----------
+    def _info_set(self, key: str, value: str):
+        if not hasattr(self, "_info_rows") or key not in self._info_rows:
+            return
+        self._info_rows[key].setText(value if (value and str(value).strip()) else "—")
+
+    def _info_get(self, key: str) -> str:
+        if not hasattr(self, "_info_rows") or key not in self._info_rows:
+            return ""
+        txt = self._info_rows[key].text() or ""
+        return "" if txt.strip() == "—" else txt.strip()
+
+    def _info_copy(self, key: str):
+        val = self._info_get(key)
+        if not val:
+            self._toast("Nothing to copy", "This field is empty.", variant="error", ms=1400)
+            return
+        QApplication.clipboard().setText(val)
+        self._toast("Copied", f"{key.title()} copied.", variant="success", ms=1200)
+
+    def _info_copy_all(self):
+        parts = []
+        for k, label in (
+            ("Name", "name"),
+            ("ID", "id"),
+            ("Difficulty", "difficulty"),
+            ("Path", "path"),
+            ("Compose", "compose"),
+            ("Entrypoint", "entrypoint"),
+        ):
+            v = self._info_get(label)
+            if v:
+                parts.append(f"{k}: {v}")
+
+        desc = (self.info_desc.text() or "").strip()
+        if desc and desc != "—":
+            parts.append("")
+            parts.append("Description:")
+            parts.append(desc)
+
+        blob = "\n".join(parts).strip()
+        if not blob:
+            self._toast("Nothing to copy", "No info available.", variant="error", ms=1400)
+            return
+
+        QApplication.clipboard().setText(blob)
+        self._toast("Copied", "All details copied.", variant="success", ms=1300)
+
+    def _info_open_entrypoint(self):
+        url = self._info_get("entrypoint")
+        if not url:
+            self._toast("No entrypoint", "This lab has no entrypoint URL.", variant="error", ms=1600)
+            return
+        QDesktopServices.openUrl(QUrl(url))
+
+    def _info_open_folder(self):
+        if not self._lab:
+            return
+        try:
+            p = str(self._lab.path)
+            QDesktopServices.openUrl(QUrl.fromLocalFile(p))
+        except Exception as e:
+            self._toast("Failed", str(e), variant="error", ms=1800)
+
+    def _info_open_compose(self):
+        if not self._lab:
+            return
+        try:
+            compose_name = getattr(self._lab, "compose_file", "docker-compose.yml") or "docker-compose.yml"
+            compose_path = os.path.join(str(self._lab.path), compose_name)
+            QDesktopServices.openUrl(QUrl.fromLocalFile(compose_path))
+        except Exception as e:
+            self._toast("Failed", str(e), variant="error", ms=1800)
+
     # ---------- toast helper ----------
     def _toast(self, title: str, body: str, variant: str = "success", ms: int = 1700):
         """
@@ -895,22 +1152,28 @@ class LabDetailView(QWidget):
         self.logs.clear()
         self._append_activity(f"Loaded lab: {lab.id}")
 
-        # Info tab content
-        info_lines = []
-        info_lines.append(f"Name: {lab.name}")
-        info_lines.append(f"ID: {lab.id}")
-        info_lines.append(f"Difficulty: {(lab.difficulty or 'Unknown').title()}")
-        info_lines.append(f"Path: {str(lab.path)}")
-        info_lines.append(f"Compose file: {getattr(lab, 'compose_file', 'docker-compose.yml')}")
+        # Info tab (gorgeous structured)
+        self._info_set("name", lab.name or "—")
+        self._info_set("id", lab.id or "—")
+        self._info_set("difficulty", (lab.difficulty or "Unknown").title())
+        self._info_set("path", str(lab.path))
+        self._info_set("compose", getattr(lab, "compose_file", "docker-compose.yml") or "docker-compose.yml")
 
-        if resolved_url:
-            info_lines.append(f"Entrypoint: {resolved_url}")
+        ep = resolved_url or ""
+        self._info_set("entrypoint", ep if ep else "—")
 
-        if getattr(lab, "description", None):
-            info_lines.append("")
-            info_lines.append("Description:")
-            info_lines.append(lab.description.strip())
-        self.info_text.setPlainText("\n".join(info_lines))
+        bits = []
+        if lab.id:
+            bits.append(lab.id)
+        if getattr(lab, "difficulty", None):
+            bits.append((lab.difficulty or "").title())
+        self.info_sub.setText(" • ".join(bits) if bits else "—")
+
+        pill = (lab.difficulty or "Unknown").upper()
+        self.info_pill.setText(pill)
+
+        desc = (getattr(lab, "description", "") or "").strip()
+        self.info_desc.setText(desc if desc else "—")
 
         # progress info
         prog = self.state.progress_map().get(lab.id, {}) if hasattr(self.state, "progress_map") else {}

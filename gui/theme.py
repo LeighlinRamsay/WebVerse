@@ -754,6 +754,101 @@ def qss_onyx_amber(scale: float = DEFAULT_UI_SCALE) -> str:
 		border: 1px solid rgba(255,255,255,0.08);
 		border-radius: {r_xl}px;
 	}}
+
+	/* ---- Info Tab (Gorgeous) ---- */
+	QScrollArea#InfoScroll {{
+		background: transparent;
+		border: none;
+	}}
+	QWidget#InfoRoot {{
+		background: transparent;
+	}}
+
+	QFrame#InfoSummaryCard {{
+		background: rgba(10,12,16,0.62);
+		border: 1px solid rgba(255,255,255,0.08);
+		border-radius: 18px;
+	}}
+
+	QLabel#InfoSummaryTitle {{
+		font-weight: 950;
+		color: rgba(245,247,255,0.95);
+		font-size: 16px;
+	}}
+
+	QLabel#InfoSummarySub {{
+		color: rgba(235,241,255,0.60);
+		font-weight: 850;
+	}}
+
+	QLabel#InfoPill {{
+		padding: 6px 12px;
+		border-radius: 999px;
+		font-weight: 950;
+		letter-spacing: 0.8px;
+		color: rgba(245,197,66,0.96);
+		background: rgba(245,197,66,0.10);
+		border: 1px solid rgba(245,197,66,0.24);
+	}}
+
+	QFrame#InfoCard {{
+		background: rgba(10,12,16,0.62);
+		border: 1px solid rgba(255,255,255,0.08);
+		border-radius: 18px;
+	}}
+
+	QLabel#InfoSectionTitle {{
+		font-weight: 950;
+		color: rgba(245,247,255,0.94);
+	}}
+
+	QFrame#InfoDivider {{
+		background: rgba(255,255,255,0.06);
+	}}
+
+	QFrame#InfoRow {{
+		background: rgba(16,20,28,0.35);
+		border: 1px solid rgba(255,255,255,0.07);
+		border-radius: 16px;
+	}}
+	QFrame#InfoRow:hover {{
+		background: rgba(16,20,28,0.50);
+		border: 1px solid rgba(255,255,255,0.10);
+	}}
+
+	QLabel#InfoKey {{
+		color: rgba(235,241,255,0.55);
+		font-weight: 900;
+		min-width: 98px;
+	}}
+
+	QLabel#InfoValue {{
+		color: rgba(235,241,255,0.92);
+		font-weight: 900;
+	}}
+
+	QLabel#InfoMono {{
+		font-family: "JetBrains Mono", "Consolas", monospace;
+		color: rgba(235,241,255,0.88);
+		font-weight: 850;
+	}}
+
+	QToolButton#InfoCopyBtn, QToolButton#InfoOpenBtn {{
+		border-radius: 10px;
+		border: 1px solid rgba(255,255,255,0.08);
+		background: rgba(255,255,255,0.03);
+	}}
+	QToolButton#InfoCopyBtn:hover, QToolButton#InfoOpenBtn:hover {{
+		border: 1px solid rgba(255,255,255,0.14);
+		background: rgba(255,255,255,0.06);
+	}}
+
+	QLabel#InfoDesc {{
+		color: rgba(235,241,255,0.80);
+		font-weight: 800;
+		line-height: 1.25;
+	}}
+
 	QLabel#HeroTitle {{
 		font-size: {h1}px;
 		font-weight: 950;
