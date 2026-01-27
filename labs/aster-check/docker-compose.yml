@@ -17,7 +17,7 @@ services:
   fetcher:
     build: ./fetcher
     environment:
-      - SIGNING_KEY=APIVERSE{51GN3D_URL5_D0N7_H1D3_53CR375}
+      - SIGNING_KEY=WEBVERSE{51GN3D_URL5_D0N7_H1D3_53CR375}
     depends_on:
       - reports
       - canary_code

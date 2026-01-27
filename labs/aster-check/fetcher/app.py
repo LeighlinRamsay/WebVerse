@@ -11,6 +11,8 @@ SIGNING_KEY = "WEBVERSE{51GN3D_URL5_D0N7_H1D3_53CR375}"
 INTERNAL_HOST_MAP = {
     "reports.astercheck.local": "http://reports:8000",
     "canary-astercode-development.astercheck.local": "http://canary_code:8000",
+    "canary-development.astercheck.local": "http://canary_code:8000",
+    "canary-code.astercheck.local": "http://canary_code:8000",
     "app.astercheck.local": "http://app:8000",
     "astercheck.local": "http://app:8000",
 }

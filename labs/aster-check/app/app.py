@@ -11,7 +11,7 @@ app = Flask(__name__)
 FETCH_BASE = "http://fetcher:8000"
 
 # must match fetcher SIGNING_KEY, but the UI signs internally (no /api/v1/sign calls)
-SIGNING_KEY = "APIVERSE{51GN3D_URL5_D0N7_H1D3_53CR375}"
+SIGNING_KEY = "WEBVERSE{51GN3D_URL5_D0N7_H1D3_53CR375}"
 
 BLOCKED_SUFFIX = ".astercheck.local"
 
