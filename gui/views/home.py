@@ -1,16 +1,129 @@
 # gui/views/home.py
 from __future__ import annotations
 
+import math
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QTableWidget, QTableWidgetItem,
     QHeaderView, QLineEdit, QTextEdit, QComboBox, QSizePolicy, QProxyStyle, QStyle, QComboBox, QApplication,
-    QFrame as QtQFrame, QStylePainter, QStyleOptionComboBox
+    QFrame as QtQFrame, QStylePainter, QStyleOptionComboBox, QStyledItemDelegate, QStyleOptionViewItem
 )
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QPointF, QObject
-from PyQt5.QtGui import QCursor, QPalette, QColor, QPainter, QPen
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QPointF, QObject, QRectF, QRect
+from PyQt5.QtGui import QCursor, QPalette, QColor, QPainter, QPen, QLinearGradient, QPainterPath
 
 from gui.widgets.pill import Pill
+from core.xp import base_xp_for_difficulty
 from gui.widgets.row_hover_delegate import RowHoverDelegate
+
+
+class PillRowDelegate(QStyledItemDelegate):
+    """
+    Paint each table row as a single sideways capsule ("pill"):
+      - First column gets left rounded end
+      - Middle columns are seamless (no rounded corners)
+      - Last column gets right rounded end
+    Hover/selected get a richer glassy look.
+    """
+    def __init__(self, table: QTableWidget):
+        super().__init__(table)
+        self._t = table
+        self._name_inset = 26  # "more central" without actually centering
+
+    def _first_visible_col(self) -> int:
+        # If horiz scrolled, col 0 might be offscreen. Paint on first visible col.
+        for c in range(self._t.columnCount()):
+            x = self._t.columnViewportPosition(c)
+            w = self._t.columnWidth(c)
+            if (x + w) > 0:
+                return c
+        return 0
+
+    def _row_rect(self, row: int) -> QRect:
+        # Build a single rect spanning the full row across all columns (viewport coords).
+        first = self._first_visible_col()
+        last = self._t.columnCount() - 1
+
+        idx_first = self._t.model().index(row, first)
+        r = self._t.visualRect(idx_first)
+
+        x0 = self._t.columnViewportPosition(first)
+        xl = self._t.columnViewportPosition(last)
+        wl = self._t.columnWidth(last)
+        x1 = xl + wl
+
+        r.setX(x0)
+        r.setWidth(max(0, x1 - x0))
+        return r
+
+    def _row_selected(self, row: int) -> bool:
+        sm = self._t.selectionModel()
+        if not sm:
+            return False
+        # QItemSelectionModel doesn't expose rootIndex() in PyQt5.
+        # Just ask if any index in that row is selected.
+        try:
+            idx = self._t.model().index(row, 0)
+            return bool(idx.isValid() and sm.isSelected(idx))
+        except Exception:
+            return False
+
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index):
+        row = index.row()
+        col = index.column()
+
+        hovered = (self._t.property("_hoverRow") == row)
+        selected = self._row_selected(row)
+
+        # Paint the row "pill" ONCE (on first visible column). This removes seams/patches.
+        if col == self._first_visible_col():
+            painter.save()
+            painter.setRenderHint(QPainter.Antialiasing, True)
+
+            r = self._row_rect(row)
+            # tighter so it feels embedded (less "floating cards")
+            vpad = 7
+            hpad = 12
+            seg = r.adjusted(hpad, vpad, -hpad, -vpad)
+
+            segf = QRectF(seg)
+            radius = max(10.0, float(segf.height() * 0.46))
+
+            path = QPainterPath()
+            path.addRoundedRect(segf, radius, radius)
+
+            # Match your Card material: rgba(16,20,28,0.45) + subtle stroke
+            # Less glossy, more "part of the surface"
+            base_fill = QColor(16, 20, 28, 105)   # ~0.41
+            hover_fill = QColor(16, 20, 28, 140)  # ~0.55
+            sel_fill   = QColor(16, 20, 28, 160)  # ~0.63
+            painter.fillPath(path, sel_fill if selected else (hover_fill if hovered else base_fill))
+
+            # Small top sheen (keeps it premium without going grey)
+            sheen = QLinearGradient(seg.left(), seg.top(), seg.left(), seg.top() + seg.height() * 0.55)
+            sheen.setColorAt(0.0, QColor(255, 255, 255, 18 if not (hovered or selected) else 26))
+            sheen.setColorAt(1.0, QColor(255, 255, 255, 0))
+            painter.fillPath(path, sheen)
+
+            # Border: white stroke normally; amber accent on selection only
+            if selected:
+                pen = QPen(QColor(245, 197, 66, 82))
+            else:
+                pen = QPen(QColor(255, 255, 255, 22 if hovered else 18))
+            pen.setWidth(1)
+            painter.setPen(pen)
+            painter.drawPath(path)
+
+            painter.restore()
+
+        # --- draw text normally, but WITHOUT Qt's default selection highlight ---
+        opt = QStyleOptionViewItem(option)
+        opt.state &= ~QStyle.State_Selected
+
+        # Lab Name: not centered, but shifted inward so it feels "more central"
+        if index.column() == 0:
+            opt.displayAlignment = Qt.AlignVCenter | Qt.AlignLeft
+            opt.rect = opt.rect.adjusted(self._name_inset, 0, 0, 0)
+
+        super().paint(painter, opt, index)
 
 class OnyxComboBox(QComboBox):
     def paintEvent(self, event):
@@ -223,7 +336,19 @@ class HomeView(QWidget):
 
         left.addLayout(controls)
 
-        self.table = QTableWidget(0, 3)
+        # Wrap the table in a Card so the list feels "placed" (not floating in the surface)
+        table_card = QFrame()
+        table_card.setObjectName("Card")
+        tcl = QVBoxLayout(table_card)
+        tcl.setContentsMargins(12, 10, 12, 12)
+        tcl.setSpacing(8)
+
+        # Optional small header label (makes the list feel intentional)
+        list_title = QLabel("Labs")
+        list_title.setObjectName("H2")
+        tcl.addWidget(list_title)
+
+        self.table = QTableWidget(0, 4)
         self.table.setObjectName("LabsTable")
         self.table.setMouseTracking(True)
         self.table.viewport().setMouseTracking(True)
@@ -232,11 +357,12 @@ class HomeView(QWidget):
         #QApplication.instance().installEventFilter(self)
 
         self.table.setProperty("_hoverRow", -1)
-        self.table.setHorizontalHeaderLabels(["Lab Name", "Difficulty", "Status"])
+        self.table.setHorizontalHeaderLabels(["Lab Name", "XP", "Difficulty", "Status"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)  # XP
+        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)  # Difficulty
+        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)           # Status
         self.table.verticalHeader().setVisible(False)
         self.table.setShowGrid(False)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
@@ -250,11 +376,15 @@ class HomeView(QWidget):
         self.table.setPalette(pal)
         self.table.setFocusPolicy(Qt.NoFocus)
 
-        self.table.setItemDelegate(RowHoverDelegate(self.table))
+        # Replace the flat/boxy row look with capsule ("pill") rows.
+        # Keeps your hover tracking (_hoverRow) + selection behavior.
+        self.table.setItemDelegate(PillRowDelegate(self.table))
+
         self.table.itemSelectionChanged.connect(self._on_select)
         self.table.setCursor(QCursor(Qt.PointingHandCursor))
 
-        left.addWidget(self.table, 1)
+        tcl.addWidget(self.table, 1)
+        left.addWidget(table_card, 1)
 
         main.addLayout(left, 3)
 
@@ -353,21 +483,31 @@ class HomeView(QWidget):
         self.table.insertRow(row)
 
         it_name = QTableWidgetItem(f"{lab.name}")
+        it_name.setTextAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
         it_name.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         self.table.setItem(row, 0, it_name)
 
+        # Match Progress page XP (base_xp_for_difficulty)
+        base_xp = base_xp_for_difficulty(getattr(lab, "difficulty", "") or "")
+        it_xp = QTableWidgetItem(f"{int(base_xp)}")
+        it_xp.setTextAlignment(Qt.AlignCenter)
+        it_xp.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        self.table.setItem(row, 1, it_xp)
+
         it_diff = QTableWidgetItem((lab.difficulty or "Unknown").title())
+        it_diff.setTextAlignment(Qt.AlignCenter)
         it_diff.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-        self.table.setItem(row, 1, it_diff)
+        self.table.setItem(row, 2, it_diff)
 
         solved = self.state.is_solved(lab.id)
         pill = Pill("Solved" if solved else "Unsolved", variant="success" if solved else "warn")
         pill.setFixedHeight(36)
-        self.table.setRowHeight(row, 64)
+        self.table.setRowHeight(row, 60)
 
         wrap = QWidget()
         wrap.setObjectName("CellWrap")
         wrap.setAttribute(Qt.WA_StyledBackground, True)
+        wrap.setAttribute(Qt.WA_TranslucentBackground, True)
         wrap.setStyleSheet("background: transparent;")
         wl = QHBoxLayout(wrap)
         wl.setContentsMargins(0, 0, 0, 0)
@@ -375,17 +515,18 @@ class HomeView(QWidget):
         wl.addWidget(pill, 0, Qt.AlignCenter)
         wl.addStretch(1)
 
-        self.table.setCellWidget(row, 2, wrap)
-
-        self.table.setRowHeight(row, 60)
-        self.table.item(row, 0).setData(Qt.UserRole, lab.id)
+        self.table.setCellWidget(row, 3, wrap)
+        it_name.setData(Qt.UserRole, lab.id)
 
     def _on_select(self):
-        items = self.table.selectedItems()
-        if not items:
+        row = self.table.currentRow()
+        if row < 0:
             return
 
-        lab_id = items[0].data(Qt.UserRole)
+        it = self.table.item(row, 0)
+        if not it:
+            return
+        lab_id = it.data(Qt.UserRole)
         if lab_id:
             self.request_select_lab.emit(str(lab_id))
 

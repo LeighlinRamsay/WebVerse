@@ -603,11 +603,6 @@ class LabDetailView(QWidget):
         self.lab_name.setObjectName("H1")
         title_col.addWidget(self.lab_name)
 
-        self.lab_desc = QLabel("—")
-        self.lab_desc.setObjectName("Muted")
-        self.lab_desc.setWordWrap(True)
-        title_col.addWidget(self.lab_desc)
-
         top.addLayout(title_col, 1)
 
         s.addLayout(top)
@@ -636,6 +631,15 @@ class LabDetailView(QWidget):
         self.tabs.setObjectName("DetailTabs")
         l.addWidget(self.tabs, 1)
 
+        # Let the corner widget have room (don't let tabs expand to consume all width)
+        try:
+            self.tabs.setUsesScrollButtons(True)
+            tb = self.tabs.tabBar()
+            tb.setExpanding(False)
+            tb.setElideMode(Qt.ElideRight)
+        except Exception:
+            pass
+
         # Overview tab: activity log
         self.overview = QWidget()
         ov = QVBoxLayout(self.overview)
@@ -646,6 +650,8 @@ class LabDetailView(QWidget):
         self.activity.setObjectName("ActivityLog")
         self.activity.setReadOnly(True)
         self.activity.setPlaceholderText("Activity will appear here…")
+        self.activity.setProperty("noAmberFocus", True)
+        self.activity.setFocusPolicy(Qt.NoFocus)
         ov.addWidget(self.activity, 1)
 
         self.tabs.addTab(self.overview, "Overview")
@@ -659,6 +665,8 @@ class LabDetailView(QWidget):
         self.info_text = QTextEdit()
         self.info_text.setObjectName("InfoBox")
         self.info_text.setReadOnly(True)
+        self.info_text.setProperty("noAmberFocus", True)
+        self.info_text.setFocusPolicy(Qt.NoFocus)
         inf.addWidget(self.info_text, 1)
 
         self.tabs.addTab(self.info, "Info")
@@ -672,6 +680,7 @@ class LabDetailView(QWidget):
         self.notes_editor = QTextEdit()
         self.notes_editor.setObjectName("NotesEditor")
         self.notes_editor.setPlaceholderText("Write notes for this lab…")
+        self.notes_editor.setProperty("noAmberFocus", True)
         nt.addWidget(self.notes_editor, 1)
 
         self.tabs.addTab(self.notes_tab, "Notes")
@@ -682,18 +691,37 @@ class LabDetailView(QWidget):
         lt.setContentsMargins(0, 0, 0, 0)
         lt.setSpacing(10)
 
-        self.btn_refresh_logs = QPushButton("Refresh Logs")
-        self.btn_refresh_logs.setObjectName("GhostBtn")
-        self.btn_refresh_logs.setCursor(Qt.PointingHandCursor)
-        lt.addWidget(self.btn_refresh_logs, 0, Qt.AlignLeft)
-
         self.logs = QTextEdit()
         self.logs.setObjectName("LogsBox")
         self.logs.setReadOnly(True)
         self.logs.setPlaceholderText("Compose logs will appear here…")
+        self.logs.setProperty("noAmberFocus", True)
+        self.logs.setFocusPolicy(Qt.NoFocus)
         lt.addWidget(self.logs, 1)
 
         self.tabs.addTab(self.logs_tab, "Logs")
+
+        # ---- Tab-corner action (prevents overlap with tab headers) ----
+        self._logs_tab_index = self.tabs.indexOf(self.logs_tab)
+
+        self.btn_refresh_logs = QPushButton("Refresh Logs")
+        self.btn_refresh_logs.setObjectName("GhostButton")
+        self.btn_refresh_logs.setCursor(Qt.PointingHandCursor)
+        self.btn_refresh_logs.setFixedHeight(40)
+        self.btn_refresh_logs.setMinimumWidth(132)  # ensure text isn't clipped
+        self.btn_refresh_logs.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+
+        _corner = QFrame()
+        _corner.setObjectName("TabsCorner")
+        _corner.setAttribute(Qt.WA_StyledBackground, True)
+        _cl = QHBoxLayout(_corner)
+        _cl.setContentsMargins(0, 0, 8, 0)
+        _cl.setSpacing(0)
+        _cl.addWidget(self.btn_refresh_logs, 0, Qt.AlignVCenter)
+
+        self.tabs.setCornerWidget(_corner, Qt.TopRightCorner)
+        _corner.setVisible(False)  # only visible on Logs tab
+        self._tabs_corner = _corner
 
         # Right: notes sidebar + key/values
         right = QFrame()
@@ -789,6 +817,9 @@ class LabDetailView(QWidget):
         self.notes_sidebar.textChanged.connect(self._notes_from_sidebar)
         self.notes_editor.textChanged.connect(self._notes_from_tab)
 
+        # Show corner action only when Logs tab is selected
+        self.tabs.currentChanged.connect(self._on_tab_changed)
+
         self._set_actions_enabled(False)
 
     # ---------- toast helper ----------
@@ -848,7 +879,6 @@ class LabDetailView(QWidget):
         self._notes_dirty = False
 
         self.lab_name.setText(lab.name)
-        self.lab_desc.setText(lab.description or "—")
 
         ico = lab_circle_icon(lab.name, getattr(lab, "difficulty", None), 44)
         self.avatar.setPixmap(ico.pixmap(44, 44))
@@ -971,6 +1001,12 @@ class LabDetailView(QWidget):
     def _set_op_state(self, state: str):
         self._op_state = state
         self.conn.set_state(state)
+
+    def _on_tab_changed(self, idx: int):
+        try:
+            self._tabs_corner.setVisible(idx == self._logs_tab_index)
+        except Exception:
+            pass
 
     def _set_actions_enabled(self, enabled: bool):
         self.conn.setEnabled(bool(enabled))

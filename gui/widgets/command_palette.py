@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFrame, QLabel,
     QLineEdit, QListWidget, QListWidgetItem
 )
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent
 
 
 class CommandPalette(QDialog):
@@ -15,8 +15,9 @@ class CommandPalette(QDialog):
         super().__init__(parent)
         self.state = state
 
-        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
-        self.setModal(True)
+        # Popup closes automatically when clicking outside (and feels like a command palette)
+        self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
+        self.setModal(False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
 
         outer = QVBoxLayout(self)
@@ -70,6 +71,13 @@ class CommandPalette(QDialog):
         self.raise_()
         self.activateWindow()
         self.q.setFocus(Qt.OtherFocusReason)
+
+    def event(self, ev):
+        # Also close if the popup loses focus / user clicks elsewhere.
+        if ev.type() in (QEvent.WindowDeactivate, QEvent.FocusOut):
+            self.close()
+            return True
+        return super().event(ev)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:

@@ -28,6 +28,7 @@ def qss_onyx_amber(scale: float = DEFAULT_UI_SCALE) -> str:
 	r_md = _s(12, scale)
 	r_lg = _s(14, scale)
 	r_xl = _s(18, scale)
+	r_md_in = max(0, r_md - _s(2, scale))
 
 	p_6 = _s(6, scale)
 	p_8 = _s(8, scale)
@@ -376,6 +377,13 @@ def qss_onyx_amber(scale: float = DEFAULT_UI_SCALE) -> str:
 		background: rgba(16,20,28,0.68);
 	}}
 
+	/* Lab Detail tab content boxes should NEVER get the amber focus border */
+    QLineEdit[noAmberFocus="true"]:focus,
+    QTextEdit[noAmberFocus="true"]:focus {{
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(16,20,28,0.68);
+    }}
+
 	/* ---- Scrollbars (Onyx Amber) ---- */
 	QAbstractScrollArea::corner {{
 		background: transparent;
@@ -583,31 +591,35 @@ def qss_onyx_amber(scale: float = DEFAULT_UI_SCALE) -> str:
 
 	/* ---- Pills ---- */
 	QFrame#Pill {{
-		border-radius: {r_md}px;
-		padding: 0px;
-		border: 1px solid rgba(255,255,255,0.10);
-		background: rgba(16,20,28,0.55);
+	    border-radius: 999px;
+	    padding: 0px;
+	    background: #000000;                          /* TRUE BLACK */
+	    border: 1px solid rgba(255,255,255,0.16);     /* makes it readable */
 	}}
+
 	QLabel#PillText {{
-		padding: {p_6}px {p_10}px;
-		font-weight: 900;
-		color: rgba(245,247,255,0.92);
+	    background: transparent;                      /* don't lighten the fill */
+	    padding: 6px 12px;
+	    font-weight: 900;
+	    color: rgba(245,247,255,0.92);
 	}}
 
+	/* Optional: a subtle "pill edge" highlight without making it grey */
+	QFrame#Pill::before {{ /* Qt ignores ::before; leave this out if you tried it */
+	}}
+
+	/* Variants: keep fill BLACK, only change border + text */
 	QFrame#Pill[variant="warn"] {{
-		background: rgba(245,197,66,0.16);
-		border: 1px solid rgba(245,197,66,0.30);
+	    background: #000000;
+	    border: 1px solid rgba(245,197,66,0.55);
 	}}
-
-	QWidget#CellWrap {{ background: transparent; }}
-
 	QFrame#Pill[variant="success"] {{
-		background: rgba(34,197,94,0.14);
-		border: 1px solid rgba(34,197,94,0.30);
+	    background: #000000;
+	    border: 1px solid rgba(34,197,94,0.55);
 	}}
 
-	QFrame#Pill[variant="warn"] QLabel#PillText {{ color: rgba(245,197,66,0.95); }}
-	QFrame#Pill[variant="success"] QLabel#PillText {{ color: rgba(34,197,94,0.95); }}
+	QFrame#Pill[variant="warn"] QLabel#PillText {{ color: rgba(245,197,66,0.98); }}
+	QFrame#Pill[variant="success"] QLabel#PillText {{ color: rgba(34,197,94,0.98); }}
 
 	/* ---- Combobox (Filters) ---- */
 	QComboBox#FilterCombo {{
