@@ -3,13 +3,55 @@ from __future__ import annotations
 
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QTableWidget, QTableWidgetItem,
-    QHeaderView, QLineEdit, QTextEdit, QComboBox, QSizePolicy, QProxyStyle, QStyle, QComboBox, QApplication
+    QHeaderView, QLineEdit, QTextEdit, QComboBox, QSizePolicy, QProxyStyle, QStyle, QComboBox, QApplication,
+    QFrame as QtQFrame, QStylePainter, QStyleOptionComboBox
 )
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QPointF
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QPointF, QObject
 from PyQt5.QtGui import QCursor, QPalette, QColor, QPainter, QPen
 
 from gui.widgets.pill import Pill
 from gui.widgets.row_hover_delegate import RowHoverDelegate
+
+class OnyxComboBox(QComboBox):
+    def paintEvent(self, event):
+        # Draw the combobox normally (frame  label) first
+        p = QStylePainter(self)
+        p.setRenderHint(QPainter.Antialiasing, True)
+
+        opt = QStyleOptionComboBox()
+        self.initStyleOption(opt)
+
+        # Important: draw both the control and the label (text)
+        p.drawComplexControl(QStyle.CC_ComboBox, opt)
+        p.drawControl(QStyle.CE_ComboBoxLabel, opt)
+
+        # Now draw our own chevron INSIDE the real arrow subcontrol rect
+        arrow_rect = self.style().subControlRect(
+            QStyle.CC_ComboBox, opt, QStyle.SC_ComboBoxArrow, self
+        )
+        if not arrow_rect.isValid():
+            return
+
+        # Keep it safely inside the button (avoid hugging borders)
+        arrow_rect = arrow_rect.adjusted(0, 0, -2, 0)
+
+        cx = arrow_rect.center().x()
+        cy = arrow_rect.center().y() + 1
+        s = max(5, min(9, arrow_rect.height() // 3))
+
+        col = QColor(235, 241, 255, 170 if self.isEnabled() else 70)
+        pen = QPen(col)
+        pen.setWidth(2)
+        pen.setCapStyle(Qt.RoundCap)
+        pen.setJoinStyle(Qt.RoundJoin)
+
+        p.setPen(pen)
+        p.setBrush(Qt.NoBrush)
+        p.drawPolyline(
+            QPointF(cx - s, cy - 2),
+            QPointF(cx,     cy + 3),
+            QPointF(cx + s, cy - 2),
+        )
 
 class OnyxComboStyle(QProxyStyle):
     """
@@ -71,6 +113,35 @@ class OnyxComboStyle(QProxyStyle):
         super().drawPrimitive(element, option, painter, widget)
 
 
+def _force_dark_combo_popup(cb: QComboBox):
+    view = cb.view()
+
+    class _PopupFix(QObject):
+        def eventFilter(self, obj, ev):
+            if ev.type() == QEvent.Show:
+                w = view.window()  # popup top-level widget (private container)
+
+                # Force a dark palette (kills the white menu panel on many styles)
+                pal = w.palette()
+                pal.setColor(QPalette.Window, QColor(10, 12, 16))
+                pal.setColor(QPalette.Base, QColor(10, 12, 16))
+                pal.setColor(QPalette.Text, QColor(235, 241, 255))
+                pal.setColor(QPalette.WindowText, QColor(235, 241, 255))
+                w.setPalette(pal)
+                w.setAutoFillBackground(True)
+
+                # Force background via QSS on the popup WINDOW too
+                w.setStyleSheet("""
+                    QWidget { background: rgba(10,12,16,0.96); color: rgba(235,241,255,0.92); }
+                    QAbstractItemView { background: transparent; color: rgba(235,241,255,0.92); }
+                """)
+            return False
+
+    fixer = _PopupFix(cb)
+    view.window().installEventFilter(fixer)
+    cb._popup_fixer = fixer  # keep alive
+
+
 class HomeView(QWidget):
     nav_labs = pyqtSignal()
     request_select_lab = pyqtSignal(str)
@@ -129,21 +200,26 @@ class HomeView(QWidget):
         self.search.textChanged.connect(self._refresh_table)
         controls.addWidget(self.search, 1)
 
-        self.status_filter = QComboBox()
+        self.status_filter = OnyxComboBox()
         self.status_filter.setObjectName("FilterCombo")
         self.status_filter.addItems(["Status: Both", "Solved", "Unsolved"])
         self.status_filter.currentIndexChanged.connect(self._refresh_table)
         controls.addWidget(self.status_filter)
 
-        self.diff_filter = QComboBox()
+        self.diff_filter = OnyxComboBox()
         self.diff_filter.setObjectName("FilterCombo")
         self.diff_filter.addItems(["All Difficulties", "Easy", "Medium", "Hard", "Master"])
         self.diff_filter.currentIndexChanged.connect(self._refresh_table)
         controls.addWidget(self.diff_filter)
 
-        self._combo_style = OnyxComboStyle()
-        self.status_filter.setStyle(self._combo_style)
-        self.diff_filter.setStyle(self._combo_style)
+        # Make popup deterministic + dark (kills white background)
+        for cb in (self.status_filter, self.diff_filter):
+            cb.view().setObjectName("ComboPopup")
+            try:
+                cb.view().setFrameShape(QtQFrame.NoFrame)
+            except Exception:
+                pass
+            _force_dark_combo_popup(cb)
 
         left.addLayout(controls)
 
@@ -276,7 +352,7 @@ class HomeView(QWidget):
         row = self.table.rowCount()
         self.table.insertRow(row)
 
-        it_name = QTableWidgetItem(f"{lab.name}\n{lab.id}")
+        it_name = QTableWidgetItem(f"{lab.name}")
         it_name.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         self.table.setItem(row, 0, it_name)
 
@@ -286,7 +362,7 @@ class HomeView(QWidget):
 
         solved = self.state.is_solved(lab.id)
         pill = Pill("Solved" if solved else "Unsolved", variant="success" if solved else "warn")
-        pill.setFixedHeight(34)
+        pill.setFixedHeight(36)
         self.table.setRowHeight(row, 64)
 
         wrap = QWidget()

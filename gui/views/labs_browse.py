@@ -1,261 +1,413 @@
 # gui/views/labs_browse.py
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import List, Optional
+
+from PyQt5.QtCore import Qt, pyqtSignal, QModelIndex, QSize, QRect, QPoint, QPointF, QAbstractListModel, QEvent, QObject
+from PyQt5.QtGui import QColor, QFontMetrics, QPainter, QPen, QBrush, QPalette, QColor
+
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel,
-    QLineEdit, QComboBox, QTableWidget, QTableWidgetItem,
-    QHeaderView, QAbstractItemView
+	QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
+	QLineEdit, QComboBox, QListView,
+	QStyledItemDelegate, QStyleOptionViewItem,
+	QSizePolicy, QProxyStyle, QStyle, QApplication, QFrame as QtQFrame,
+	QStylePainter, QStyleOptionComboBox
 )
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QTimer
-from PyQt5.QtGui import QCursor
 
+from core.runtime import get_running_lab
+from core.xp import base_xp_for_difficulty
 from gui.util_avatar import lab_circle_icon
-from gui.widgets.row_hover_delegate import RowHoverDelegate
 
+class OnyxComboBox(QComboBox):
+	def paintEvent(self, event):
+		# Draw the combobox normally (frame  label) first
+		p = QStylePainter(self)
+		p.setRenderHint(QPainter.Antialiasing, True)
+
+		opt = QStyleOptionComboBox()
+		self.initStyleOption(opt)
+
+		# Important: draw both the control and the label (text)
+		p.drawComplexControl(QStyle.CC_ComboBox, opt)
+		p.drawControl(QStyle.CE_ComboBoxLabel, opt)
+
+		# Now draw our own chevron INSIDE the real arrow subcontrol rect
+		arrow_rect = self.style().subControlRect(
+			QStyle.CC_ComboBox, opt, QStyle.SC_ComboBoxArrow, self
+		)
+
+		if not arrow_rect.isValid():
+			return
+
+		# Keep it safely inside the button (avoid hugging borders)
+		arrow_rect = arrow_rect.adjusted(0, 0, -2, 0)
+
+		cx = arrow_rect.center().x()
+		cy = arrow_rect.center().y() + 1
+		s = max(5, min(9, arrow_rect.height() // 3))
+
+		col = QColor(235, 241, 255, 170 if self.isEnabled() else 70)
+		pen = QPen(col)
+		pen.setWidth(2)
+		pen.setCapStyle(Qt.RoundCap)
+		pen.setJoinStyle(Qt.RoundJoin)
+
+		p.setPen(pen)
+		p.setBrush(Qt.NoBrush)
+		p.drawPolyline(
+			QPointF(cx - s, cy - 2),
+			QPointF(cx,     cy + 3),
+			QPointF(cx + s, cy - 2),
+		)
+
+
+@dataclass
+class _LabCard:
+	lab_id: str
+	name: str
+	slug: str
+	difficulty: str
+	status: str
+	xp: int
+
+
+class _LabsGridModel(QAbstractListModel):
+	ROLE_LAB_ID = Qt.UserRole + 1
+	ROLE_CARD = Qt.UserRole + 2
+
+	def __init__(self, cards: Optional[List[_LabCard]] = None, parent=None):
+		super().__init__(parent)
+		self._cards: List[_LabCard] = cards or []
+
+	def rowCount(self, parent=QModelIndex()):
+		if parent.isValid():
+			return 0
+		return len(self._cards)
+
+	def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
+		if not index.isValid():
+			return None
+		card = self._cards[index.row()]
+		if role == Qt.DisplayRole:
+			return card.name
+		if role == Qt.DecorationRole:
+			return lab_circle_icon(card.name, card.difficulty, 38)
+		if role == self.ROLE_LAB_ID:
+			return card.lab_id
+		if role == self.ROLE_CARD:
+			return card
+		return None
+
+	def set_cards(self, cards: List[_LabCard]):
+		self.beginResetModel()
+		self._cards = cards
+		self.endResetModel()
+
+
+class _LabCardDelegate(QStyledItemDelegate):
+	def __init__(self, parent=None):
+		super().__init__(parent)
+
+	def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex):
+		card: _LabCard = index.data(_LabsGridModel.ROLE_CARD)
+		if not card:
+			super().paint(painter, option, index)
+			return
+
+		painter.save()
+		painter.setRenderHint(QPainter.Antialiasing, True)
+
+		r = option.rect.adjusted(6, 6, -6, -6)
+
+		hover = bool(option.state & QStyle.State_MouseOver)
+		pressed = bool(option.state & QStyle.State_Sunken)
+
+		bg = QColor(10, 12, 16, 178)
+		bd = QColor(255, 255, 255, 18)
+		if hover:
+			bg = QColor(14, 18, 26, 200)
+			bd = QColor(245, 197, 66, 90)
+		if pressed:
+			bg = QColor(16, 22, 32, 220)
+			bd = QColor(245, 197, 66, 140)
+
+		painter.setBrush(QBrush(bg))
+		painter.setPen(QPen(bd, 1))
+		painter.drawRoundedRect(r, 18, 18)
+
+		# icon
+		icon = index.data(Qt.DecorationRole)
+		icon_size = 40
+		ix = r.left() + 14
+		iy = r.top() + 14
+		if icon:
+			pm = icon.pixmap(icon_size, icon_size)
+			painter.drawPixmap(ix, iy, pm)
+
+		# text metrics
+		fm = QFontMetrics(option.font)
+		title_x = ix + icon_size + 12
+		title_w = r.right() - title_x - 14
+
+		title = card.name or "—"
+		subtitle = card.slug or ""
+
+		# title
+		painter.setPen(QColor(245, 247, 255, 235))
+		t_rect = QRect(title_x, iy - 1, title_w, 22)
+		painter.drawText(t_rect, Qt.AlignLeft | Qt.AlignVCenter, fm.elidedText(title, Qt.ElideRight, title_w))
+
+		# subtitle
+		painter.setPen(QColor(235, 241, 255, 150))
+		s_rect = QRect(title_x, iy + 20, title_w, 18)
+		painter.drawText(s_rect, Qt.AlignLeft | Qt.AlignVCenter, fm.elidedText(subtitle, Qt.ElideRight, title_w))
+
+		# bottom meta row (Difficulty / Status / XP)
+		meta_y = r.bottom() - 26
+		meta = f"{(card.difficulty or 'Unknown').title()}   •   {card.status}   •   {card.xp} XP"
+		painter.setPen(QColor(235, 241, 255, 165))
+		painter.drawText(QRect(r.left() + 14, meta_y, r.width() - 28, 18), Qt.AlignLeft | Qt.AlignVCenter, meta)
+
+		painter.restore()
+
+	def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex):
+		return QSize(330, 116)
+
+
+def _force_dark_combo_popup(cb: QComboBox):
+	view = cb.view()
+
+	class _PopupFix(QObject):
+		def eventFilter(self, obj, ev):
+			if ev.type() == QEvent.Show:
+				w = view.window()  # this is the popup top-level widget (private container)
+				# Force a dark palette (kills the white menu panel on many styles)
+				pal = w.palette()
+				pal.setColor(QPalette.Window, QColor(10, 12, 16))
+				pal.setColor(QPalette.Base, QColor(10, 12, 16))
+				pal.setColor(QPalette.Text, QColor(235, 241, 255))
+				pal.setColor(QPalette.WindowText, QColor(235, 241, 255))
+				w.setPalette(pal)
+				w.setAutoFillBackground(True)
+
+				# And force background via QSS on the popup WINDOW too
+				w.setStyleSheet("""
+					QWidget { background: rgba(10,12,16,0.96); color: rgba(235,241,255,0.92); }
+					QAbstractItemView { background: transparent; color: rgba(235,241,255,0.92); }
+				""")
+			return False
+
+	fixer = _PopupFix(cb)
+	view.window().installEventFilter(fixer)
+	cb._popup_fixer = fixer  # keep alive (important)
 
 class LabsBrowseView(QWidget):
-    request_open_lab = pyqtSignal(str)
+	request_open_lab = pyqtSignal(str)
 
-    def __init__(self, state):
-        super().__init__()
-        self.state = state
+	def __init__(self, state):
+		super().__init__()
+		self.state = state
 
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.setSpacing(12)
+		outer = QVBoxLayout(self)
+		outer.setContentsMargins(0, 0, 0, 0)
+		outer.setSpacing(12)
 
-        surface = QFrame()
-        surface.setObjectName("ContentSurface")
-        outer.addWidget(surface, 1)
+		surface = QFrame()
+		surface.setObjectName("ContentSurface")
+		outer.addWidget(surface, 1)
 
-        content = QVBoxLayout(surface)
-        content.setContentsMargins(22, 18, 22, 18)
-        content.setSpacing(14)
+		content = QVBoxLayout(surface)
+		content.setContentsMargins(22, 18, 22, 18)
+		content.setSpacing(14)
 
-        title = QLabel("Browse Labs")
-        title.setObjectName("H1")
-        content.addWidget(title)
+		title = QLabel("Browse Labs")
+		title.setObjectName("H1")
+		content.addWidget(title)
 
-        subtitle = QLabel("Advanced search, filtering, and sorting. Double-click a lab to open its page.")
-        subtitle.setObjectName("Muted")
-        content.addWidget(subtitle)
+		subtitle = QLabel("Advanced search, filtering, and sorting. Double-click a lab to open its page.")
+		subtitle.setObjectName("Muted")
+		content.addWidget(subtitle)
 
-        # --- ADVANCED FILTER BAR ---
-        filters = QHBoxLayout()
-        filters.setSpacing(12)
+		# --- ADVANCED FILTER BAR ---
+		filters = QHBoxLayout()
+		filters.setSpacing(12)
 
-        self.q = QLineEdit()
-        self.q.setObjectName("SearchBox")
-        self.q.setPlaceholderText("Search name, id, description…")
-        self.q.textChanged.connect(self._refresh)
-        filters.addWidget(self.q, 1)
+		self.q = QLineEdit()
+		self.q.setObjectName("SearchBox")
+		self.q.setPlaceholderText("Search name, id, description…")
+		self.q.textChanged.connect(self._refresh)
+		filters.addWidget(self.q, 1)
 
-        self.status = QComboBox()
-        self.status.setObjectName("FilterBox")
-        self.status.addItems(["Status: Any", "Status: Solved", "Status: Active", "Status: Unsolved"])
-        self.status.currentIndexChanged.connect(self._refresh)
-        filters.addWidget(self.status)
+		self.status = OnyxComboBox()
+		self.status.setObjectName("FilterCombo")
+		self.status.addItems(["Status: Any", "Status: Solved", "Status: Active", "Status: Unsolved"])
+		self.status.currentIndexChanged.connect(self._refresh)
 
-        self.diff = QComboBox()
-        self.diff.setObjectName("FilterBox")
-        self.diff.addItems(["Difficulty: Any", "Easy", "Medium", "Hard", "Master"])
-        self.diff.currentIndexChanged.connect(self._refresh)
-        filters.addWidget(self.diff)
+		# Style the popup deterministically via QSS
+		self.status.view().setObjectName("ComboPopup")
+		try:
+			self.status.view().setFrameShape(QtQFrame.NoFrame)
+		except Exception:
+			pass
 
-        self.sort = QComboBox()
-        self.sort.setObjectName("FilterBox")
-        self.sort.addItems(["Sort: Unsolved first", "Sort: Name A→Z", "Sort: Difficulty", "Sort: Attempts"])
-        self.sort.currentIndexChanged.connect(self._refresh)
-        filters.addWidget(self.sort)
+		filters.addWidget(self.status)
 
-        content.addLayout(filters)
+		self.diff = OnyxComboBox()
+		self.diff.setObjectName("FilterCombo")
+		self.diff.addItems(["Difficulty: Any", "Easy", "Medium", "Hard", "Master"])
+		self.diff.currentIndexChanged.connect(self._refresh)
 
-        # --- RESULTS TABLE ---
-        self.table = QTableWidget()
-        self.table.setObjectName("LabsTable")
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Lab", "Difficulty", "Status", "Attempts"])
-        self.table.verticalHeader().setVisible(False)
-        self.table.setShowGrid(False)
+		self.diff.view().setObjectName("ComboPopup")
+		try:
+			self.diff.view().setFrameShape(QtQFrame.NoFrame)
+		except Exception:
+			pass
 
-        # Single click should not "select" (it changes icon tint on some styles).
-        # Double click opens; hover handles visuals.
-        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.table.setSelectionMode(QAbstractItemView.NoSelection)
-        self.table.setFocusPolicy(Qt.NoFocus)
+		filters.addWidget(self.diff)
 
-        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.table.setAlternatingRowColors(False)
+		self.sort = OnyxComboBox()
+		self.sort.setObjectName("FilterCombo")
+		self.sort.addItems(["Sort: Unsolved first", "Sort: Name A→Z", "Sort: Difficulty", "Sort: XP (High→Low)"])
+		self.sort.currentIndexChanged.connect(self._refresh)
 
-        self.table.setMouseTracking(True)
-        self.table.viewport().setMouseTracking(True)
+		self.sort.view().setObjectName("ComboPopup")
+		try:
+			self.sort.view().setFrameShape(QtQFrame.NoFrame)
+		except Exception:
+			pass
 
-        self.table.viewport().setAttribute(Qt.WA_Hover, True)
+		for cb in (self.status, self.diff, self.sort):
+			_force_dark_combo_popup(cb)
 
-        # Row-hover plumbing (same as HomeView)
-        self.table.viewport().installEventFilter(self)
-        self.table.setProperty("_hoverRow", -1)
-        self.table.setItemDelegate(RowHoverDelegate(self.table))
+		filters.addWidget(self.sort)
 
-        # Fix the classic "row 0 doesn't hover until something else happens"
-        QTimer.singleShot(0, self._sync_hover_to_cursor)
+		content.addLayout(filters)
 
-        header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+		# --- CARD GRID ---
+		self.grid = QListView()
+		self.grid.setObjectName("LabsGrid")
+		self.grid.setViewMode(QListView.IconMode)
+		self.grid.setResizeMode(QListView.Adjust)
+		self.grid.setWrapping(True)
+		self.grid.setSpacing(10)
+		self.grid.setUniformItemSizes(True)
+		self.grid.setMouseTracking(True)
+		self.grid.setSelectionMode(QListView.NoSelection)
+		self.grid.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        self.table.cellDoubleClicked.connect(self._open_lab)
-        content.addWidget(self.table, 1)
+		self._model = _LabsGridModel([])
+		self.grid.setModel(self._model)
+		self.grid.setItemDelegate(_LabCardDelegate(self.grid))
 
-        self._refresh()
+		# Make cards feel snappy on hover/click
+		self.grid.viewport().setAttribute(Qt.WA_Hover, True)
 
-    def showEvent(self, event):
-        super().showEvent(event)
-        # Cursor may already be over row 0 before the table has real geometry.
-        # Do an immediate sync + a short delayed sync after layout/paint settles.
-        QTimer.singleShot(0, self._sync_hover_to_cursor)
-        QTimer.singleShot(40, self._sync_hover_to_cursor)
+		self.grid.clicked.connect(self._open_lab)
+		content.addWidget(self.grid, 1)
 
-    def _sync_hover_to_cursor(self):
-        if not self.table or not self.table.viewport():
-            return
-        pos = self.table.viewport().mapFromGlobal(QCursor.pos())
-        self._set_hover_from_pos(pos)
+		self._refresh()
 
-    def _set_hover_from_pos(self, pos):
-        # indexAt() can return an invalid index for the first row depending on style/padding.
-        # rowAt() is stable because it only uses y-coord -> perfect for row-hover effects.
-        
-        y = int(pos.y())
-        row = self.table.rowAt(y)
+	def showEvent(self, event):
+		super().showEvent(event)
+		# force a relayout once geometry is real, so grid wraps nicely immediately
+		QApplication.processEvents()
 
-        # IMPORTANT FIX:
-        # With our rounded/padded table styling, there's often a tiny "dead strip" at the very
-        # top of the viewport where rowAt() returns -1 even though the cursor is visually over row 0.
-        # So if rowAt() fails, but the cursor is still within the vertical band of row 0, force row 0.
-        if row < 0 and self.table.rowCount() > 0:
-            top0 = self.table.rowViewportPosition(0)
-            h0 = self.table.rowHeight(0)
-            if 0 <= y < (top0 + h0):
-                row = 0
+	def eventFilter(self, obj, event):
+		return super().eventFilter(obj, event)
 
-        # If we're not over any row (e.g., empty space below rows), clear hover.
-        if row < 0:
-            row = -1
+	def _running_lab_id(self) -> str:
+		try:
+			rid = get_running_lab()
+			return str(rid) if rid else ""
+		except Exception:
+			return ""
 
-        cur = int(self.table.property("_hoverRow") or -1)
-        if row != cur:
-            self.table.setProperty("_hoverRow", row)
-            self.table.viewport().update()
+	def _labs(self):
+		return self.state.labs()
 
-    def eventFilter(self, obj, event):
-        if obj is self.table.viewport():
-            t = event.type()
-            if t in (QEvent.MouseMove, QEvent.HoverMove):
-                self._set_hover_from_pos(event.pos())
-            elif t in (QEvent.HoverEnter, QEvent.Enter):
-                # Enter has no .pos() in PyQt5 -> sync from cursor
-                pos = self.table.viewport().mapFromGlobal(QCursor.pos())
-                self._set_hover_from_pos(pos)
+	def _progress(self):
+		return self.state.progress_map() if hasattr(self.state, "progress_map") else {}
 
-            elif t in (QEvent.Show, QEvent.Resize):
-                # Geometry changes can affect indexAt() for row 0
-                QTimer.singleShot(0, self._sync_hover_to_cursor)
+	def _refresh(self):
+		labs = list(self._labs())
+		prog = self._progress()
+		q = (self.q.text() or "").strip().lower()
+		running_id = self._running_lab_id()
 
-            elif t in (QEvent.Leave, QEvent.HoverLeave):
-                cur = int(self.table.property("_hoverRow") or -1)
-                if cur != -1:
-                    self.table.setProperty("_hoverRow", -1)
-                    self.table.viewport().update()
-        return super().eventFilter(obj, event)
+		def status_of(lab_id: str) -> str:
+			p = prog.get(lab_id, {})
+			if p.get("solved_at"):
+				return "Solved"
 
-    def _labs(self):
-        return self.state.labs()
+			if running_id and lab_id == running_id:
+				return "Active"
 
-    def _progress(self):
-        return self.state.progress_map() if hasattr(self.state, "progress_map") else {}
+			if p.get("started_at"):
+				return "Active"
+			return "Unsolved"
 
-    def _refresh(self):
-        labs = list(self._labs())
-        prog = self._progress()
-        q = (self.q.text() or "").strip().lower()
+		# filter: query
+		if q:
+			out = []
+			for lab in labs:
+				hay = " ".join([
+					(getattr(lab, "name", "") or ""),
+					(getattr(lab, "id", "") or ""),
+					(getattr(lab, "description", "") or ""),
+				]).lower()
+				if q in hay:
+					out.append(lab)
+			labs = out
 
-        def status_of(lab_id: str):
-            p = prog.get(lab_id, {})
-            if p.get("solved_at"):
-                return "Solved"
-            if p.get("started_at"):
-                return "Active"
-            return "Unsolved"
+		# filter: difficulty
+		diff = self.diff.currentText().strip().lower()
+		if diff != "difficulty: any":
+			labs = [l for l in labs if (getattr(l, "difficulty", "") or "").strip().lower() == diff]
 
-        # filter: query
-        if q:
-            out = []
-            for lab in labs:
-                hay = " ".join([
-                    (lab.name or ""),
-                    (lab.id or ""),
-                    (lab.description or ""),
-                ]).lower()
-                if q in hay:
-                    out.append(lab)
-            labs = out
+		# filter: status
+		sidx = self.status.currentIndex()
+		if sidx != 0:
+			wanted = {1: "Solved", 2: "Active", 3: "Unsolved"}[sidx]
+			labs = [l for l in labs if status_of(str(getattr(l, "id", ""))) == wanted]
 
-        # filter: difficulty
-        diff = self.diff.currentText().strip().lower()
-        if diff != "difficulty: any":
-            labs = [l for l in labs if (l.difficulty or "").strip().lower() == diff]
+		# sort
+		rank = {"easy": 0, "medium": 1, "hard": 2, "master": 3}
+		sort_mode = self.sort.currentIndex()
 
-        # filter: status
-        sidx = self.status.currentIndex()
-        if sidx != 0:
-            wanted = {1: "Solved", 2: "Active", 3: "Unsolved"}[sidx]
-            labs = [l for l in labs if status_of(l.id) == wanted]
+		def _diff_key(L):
+			return rank.get((getattr(L, "difficulty", "") or "").strip().lower(), 99)
 
-        # sort
-        rank = {"easy": 0, "medium": 1, "hard": 2, "master": 3}
-        sort_mode = self.sort.currentIndex()
-        if sort_mode == 0:  # unsolved first
-            labs.sort(key=lambda L: (status_of(L.id) == "Solved", status_of(L.id) == "Active",
-                                    rank.get((L.difficulty or "").lower(), 99), (L.name or "").lower()))
-        elif sort_mode == 1:  # name
-            labs.sort(key=lambda L: (L.name or "").lower())
-        elif sort_mode == 2:  # difficulty
-            labs.sort(key=lambda L: (rank.get((L.difficulty or "").lower(), 99), (L.name or "").lower()))
-        else:  # attempts
-            labs.sort(key=lambda L: int(prog.get(L.id, {}).get("attempts") or 0), reverse=True)
+		def _xp_key(L):
+			return base_xp_for_difficulty(getattr(L, "difficulty", "") or "")
 
-        self.table.setRowCount(len(labs))
-        for r, lab in enumerate(labs):
-            lab_item = QTableWidgetItem(f"{lab.name}\n{lab.id}")
-            lab_item.setIcon(lab_circle_icon(lab.name, lab.difficulty, 38))
-            lab_item.setData(Qt.UserRole, lab.id)
-            self.table.setItem(r, 0, lab_item)
+		if sort_mode == 0:  # unsolved first
+			labs.sort(key=lambda L: (
+				status_of(str(getattr(L, "id", ""))) == "Solved",
+				status_of(str(getattr(L, "id", ""))) == "Active",
+				_diff_key(L),
+				(getattr(L, "name", "") or "").lower(),
+			))
+		elif sort_mode == 1:  # name
+			labs.sort(key=lambda L: (getattr(L, "name", "") or "").lower())
+		elif sort_mode == 2:  # difficulty
+			labs.sort(key=lambda L: (_diff_key(L), (getattr(L, "name", "") or "").lower()), reverse=True)
+		else:  # XP high -> low
+			labs.sort(key=lambda L: (_xp_key(L), (getattr(L, "name", "") or "").lower()), reverse=True)
 
-            d = QTableWidgetItem((lab.difficulty or "Unknown").title())
-            d.setTextAlignment(Qt.AlignCenter)
-            self.table.setItem(r, 1, d)
+		cards: List[_LabCard] = []
+		for lab in labs:
+			lab_id = str(getattr(lab, "id", ""))
+			name = str(getattr(lab, "name", "—") or "—")
+			slug = lab_id
+			difficulty = str(getattr(lab, "difficulty", "") or "Unknown")
+			status = status_of(lab_id)
+			xp = base_xp_for_difficulty(difficulty)
+			cards.append(_LabCard(lab_id=lab_id, name=name, slug=slug, difficulty=difficulty, status=status, xp=xp))
 
-            st = QTableWidgetItem(status_of(lab.id))
-            st.setTextAlignment(Qt.AlignCenter)
-            self.table.setItem(r, 2, st)
+		self._model.set_cards(cards)
 
-            attempts = int(prog.get(lab.id, {}).get("attempts") or 0)
-            a = QTableWidgetItem(str(attempts))
-            a.setTextAlignment(Qt.AlignCenter)
-            self.table.setItem(r, 3, a)
-
-            self.table.setRowHeight(r, 62)
-
-        # After repopulating, resync hover immediately (prevents row 0 hover weirdness)
-        QTimer.singleShot(0, self._sync_hover_to_cursor)
-
-    def _open_lab(self, row: int, col: int):
-        item = self.table.item(row, 0)
-        if not item:
-            return
-        lab_id = item.data(Qt.UserRole)
-        if lab_id:
-            self.request_open_lab.emit(lab_id)
+	def _open_lab(self, index: QModelIndex):
+		lab_id = index.data(_LabsGridModel.ROLE_LAB_ID)
+		if lab_id:
+			self.request_open_lab.emit(str(lab_id))

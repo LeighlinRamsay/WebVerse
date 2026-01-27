@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
 )
 
 from core.runtime import get_running_lab
+from core.xp import base_xp_for_difficulty
 from core.progress_db import get_progress_map
 
 class ProgressView(QWidget):
@@ -212,8 +213,7 @@ class ProgressView(QWidget):
 
             if p.get("solved_at"):
                 solved_count += 1
-                diff = _norm_diff(getattr(lab, "difficulty", "") or "")
-                base = DIFF_XP.get(diff, 0)
+                base = base_xp_for_difficulty(getattr(lab, "difficulty", "") or "")
                 total_xp += base + _attempt_bonus(attempts)
 
         winrate = 0.0
@@ -357,7 +357,7 @@ class ProgressView(QWidget):
 
     def _make_mission_row(self, lab, p: Dict, is_running: bool = False) -> QFrame:
         diff = _norm_diff(getattr(lab, "difficulty", "") or "")
-        base_xp = DIFF_XP.get(diff, 0)
+        base_xp = base_xp_for_difficulty(diff)
 
         attempts = int(p.get("attempts") or 0)
         started = bool(p.get("started_at")) or bool(is_running)
@@ -468,12 +468,7 @@ def _norm_diff(s: str) -> str:
     return (s or "").strip().upper()
 
 
-DIFF_XP = {
-    "EASY": 50,
-    "MEDIUM": 120,
-    "HARD": 250,
-    "MASTER": 450,
-}
+DIFF_XP = {}
 
 
 def _attempt_bonus(attempts: int) -> int:
