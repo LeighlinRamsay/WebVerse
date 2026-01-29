@@ -1,0 +1,61 @@
+:root {
+  --card-border: rgba(255,255,255,.08);
+  --card-bg: rgba(15,18,24,.72);
+}
+
+body {
+  background:
+    radial-gradient(1100px 700px at 10% -10%, rgba(65,105,225,.18), transparent 55%),
+    radial-gradient(900px 600px at 90% 0%, rgba(255,193,7,.12), transparent 55%),
+    #0b0e12;
+}
+
+.brand-dot{
+  width: 10px; height: 10px; border-radius: 999px;
+  background: linear-gradient(135deg, #4aa3ff, #ffc107);
+  box-shadow: 0 0 0 4px rgba(74,163,255,.12);
+}
+
+.cardx{
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.35);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: .92rem;
+}
+
+.chip{
+  display:inline-flex; align-items:center; gap:.35rem;
+  padding: .25rem .55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+  font-size: .82rem;
+}
+
+.chip-role{
+  border-color: rgba(255,193,7,.22);
+  background: rgba(255,193,7,.08);
+}
+
+.link-muted { color: rgba(232,238,252,.70); text-decoration: none; }
+.link-muted:hover { color: rgba(232,238,252,.95); text-decoration: underline; }
+
+.hr-soft { border-top: 1px solid rgba(255,255,255,.08); }
+
+.kv { display:grid; grid-template-columns: 160px 1fr; gap: .35rem .85rem; }
+.kv .k { color: rgba(232,238,252,.65); }
+.kv .v { color: rgba(232,238,252,.95); }
+
+.msg {
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  border-radius: 12px;
+  padding: .65rem .75rem;
+}
+.msg .meta { color: rgba(232,238,252,.60); font-size: .82rem; }
+.msg .body { white-space: pre-wrap; word-break: break-word; }

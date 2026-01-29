@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% set subtitle = "LinkID Provider" %}
+{% block content %}
+  <div class="card" style="max-width:860px">
+    <h2 style="margin-top:0">LinkID</h2>
+    {% if idp_user %}
+      <p>Signed into LinkID as <span class="pill">{{ idp_user }}</span></p>
+      <p><a class="pill" href="/oauth/logout">Logout LinkID</a></p>
+    {% else %}
+      <p class="muted">You are not signed into LinkID.</p>
+      <p><a class="pill" href="/oauth/login">Login LinkID</a></p>
+    {% endif %}
+    <hr />
+    <p class="muted">LinkID is used for OAuth authorization and account linking.</p>
+  </div>
+{% endblock %}

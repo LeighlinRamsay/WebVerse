@@ -1,0 +1,26 @@
+{% extends "_base.html" %}
+{% block title %}LinkID · Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="cardx p-4">
+      <h4 class="mb-1">LinkID Login</h4>
+      <div class="text-muted mb-4">Enter your email to create a session.</div>
+
+      {% if error %}
+        <div class="alert alert-danger py-2">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" class="d-grid gap-3">
+        <input type="hidden" name="next" value="{{ next_url }}" />
+        <div>
+          <label class="form-label">Email</label>
+          <input name="email" class="form-control" placeholder="user@{{domain}}" />
+        </div>
+        <button class="btn btn-primary">Continue</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
