@@ -6,39 +6,16 @@ WebVerse is a local **web & API security lab runner** — a desktop app that dis
 
 ---
 
-## Screenshot / Demo
+## Install (Recommended): pipx
 
-<img width="1902" height="892" alt="home" src="https://github.com/user-attachments/assets/3a02f514-5bfd-4f6f-837b-3b60b693426e" />
+`pipx` installs WebVerse into an isolated environment and exposes a `webverse` command.
 
-<img width="1901" height="887" alt="lab" src="https://github.com/user-attachments/assets/2b490468-4919-43ef-afc4-bc69d6069d65" />
-
-<img width="1897" height="902" alt="browse" src="https://github.com/user-attachments/assets/d3241724-2451-4f60-b5f6-240d0137ef77" />
-
-<img width="1916" height="892" alt="progress" src="https://github.com/user-attachments/assets/2c14bba5-d237-489c-84a4-6d84ef2f715e" />
-
----
-
-## Features
-
-- 🧪 Browse included labs (difficulty, tags, description)
-- ▶️ One-click **Start / Stop / Reset**
-- 🌐 **Open in Browser** from the UI
-- 🧾 View lab status and logs
-- ✅ Track progress locally (`progress.db`)
-- 🏁 Flag submission + verification (via `flag_sha256` in each `lab.yml`)
-
----
-
-## Requirements
-
-### Supported OS
+### 0) Requirements
 - **Linux** or **macOS**
-
-### Dependencies
 - **Python 3.10+**
 - **Docker** + **Docker Compose v2** (must support `docker compose`)
 
-Verify everything is installed:
+Quick check:
 
 ```bash
 python3 --version
@@ -47,12 +24,6 @@ docker compose version
 ```
 
 > If `docker compose version` fails, install Docker Desktop (macOS) or Docker Engine + Compose plugin (Linux).
-
----
-
-## Install (Recommended): pipx
-
-`pipx` installs WebVerse into an isolated environment and exposes a `webverse` command.
 
 ### 1) Install pipx (one time)
 
@@ -104,6 +75,29 @@ pip install -r requirements.txt
 ```bash
 python3 webverse.py
 ```
+
+---
+
+## Screenshot / Demo
+
+<img width="1902" height="892" alt="home" src="https://github.com/user-attachments/assets/3a02f514-5bfd-4f6f-837b-3b60b693426e" />
+
+<img width="1901" height="887" alt="lab" src="https://github.com/user-attachments/assets/2b490468-4919-43ef-afc4-bc69d6069d65" />
+
+<img width="1897" height="902" alt="browse" src="https://github.com/user-attachments/assets/d3241724-2451-4f6f-240d0137ef77" />
+
+<img width="1916" height="892" alt="progress" src="https://github.com/user-attachments/assets/2c14bba5-d237-489c-84a4-6d84ef2f715e" />
+
+---
+
+## Features
+
+- 🧪 Browse included labs (difficulty, tags, description)
+- ▶️ One-click **Start / Stop / Reset**
+- 🌐 **Open in Browser** from the UI
+- 🧾 View lab status and logs
+- ✅ Track progress locally (`progress.db`)
+- 🏁 Flag submission + verification (via `flag_sha256` in each `lab.yml`)
 
 ---
 
