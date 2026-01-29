@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>LinkLapse • Sign in</title>
+    <style>
+      body { font-family: Arial; background:#0b0e12; color:#e8eefc; padding:24px; }
+      .card { max-width: 560px; margin: 0 auto; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px; }
+      .muted { color: rgba(232,238,252,0.72); font-size: 13px; line-height: 1.5; }
+      .row { margin-top: 10px; }
+      input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.10); background: rgba(0,0,0,0.25); color: #e8eefc; }
+      button { margin-top: 12px; width: 100%; padding: 10px 12px; border-radius: 10px; border: 0; background: #ffb84a; color: #10131a; font-weight: 700; cursor: pointer; }
+      a { color: #ffcc7a; text-decoration: none; }
+      .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 14px 0; }
+      .error { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.30); padding: 10px 12px; border-radius: 10px; color: rgba(255,220,220,0.95); }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2 style="margin:0 0 6px 0;">Sign in</h2>
+      <div class="muted">Use your LinkLapse credentials, or continue with LinkID (SSO).</div>
+
+      {% if error %}
+        <div class="row error">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="/auth/login">
+        <div class="row">
+          <input name="email" placeholder="Email" autocomplete="username">
+        </div>
+        <div class="row">
+          <input type="password" name="password" placeholder="Password" autocomplete="current-password">
+        </div>
+        <button type="submit">Sign in</button>
+      </form>
+
+      <div class="divider"></div>
+
+      <div class="muted">
+        Having trouble? <a href="/auth/trouble">Trouble signing in</a>
+      </div>
+    </div>
+  </body>
+</html>

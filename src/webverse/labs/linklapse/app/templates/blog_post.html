@@ -1,0 +1,93 @@
+{% extends "_base.html" %}
+{% block title %}LinkLapse · Blog Post{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="cardx p-4">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div>
+          <h3 class="mb-1">{{ post["title"] }}</h3>
+          <div class="text-muted small mono">blog.{{domain}}/post/{{post["id"]}}</div>
+        </div>
+        <a class="btn btn-sm btn-outline-light" href="http://blog.{{domain}}/">All posts</a>
+      </div>
+
+      <hr class="hr-soft my-3"/>
+
+      <div class="mono" style="white-space:pre-wrap">{{ post["body"] }}</div>
+    </div>
+
+    <div class="cardx p-4 mt-4">
+      <h5 class="mb-3">Comments</h5>
+
+      <div id="comments" class="d-grid gap-2">
+        {% for c in comments %}
+          <div class="msg">
+            <div class="meta mono">{{ c["created_at"] }} · {{ c["author"] }}</div>
+            <div class="body mono">{{ c["body"] }}</div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <hr class="hr-soft my-4"/>
+
+      <form id="cform" class="d-grid gap-2">
+        <div class="row g-2">
+          <div class="col-md-4">
+            <input id="author" class="form-control form-control-sm" placeholder="name (optional)" />
+          </div>
+          <div class="col-md-8">
+            <input id="body" class="form-control form-control-sm" placeholder="leave a comment…" />
+          </div>
+        </div>
+        <button class="btn btn-sm btn-primary">Post comment</button>
+        <div id="status" class="text-muted small"></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="cardx p-4">
+      <div class="fw-semibold mb-2">About</div>
+      <div class="text-muted small">
+        This is a legacy surface that still uses a separate comment service.
+      </div>
+      <hr class="hr-soft my-3"/>
+      <div class="kv mono">
+        <div class="k">comment api</div><div class="v">blog-api.{{domain}}</div>
+        <div class="k">endpoint</div><div class="v">/api/v1/comments</div>
+        <div class="k">post id</div><div class="v">{{ post["id"] }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const form = document.getElementById("cform");
+  const status = document.getElementById("status");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    status.textContent = "Posting…";
+
+    const author = (document.getElementById("author").value || "anon").slice(0,60);
+    const body = (document.getElementById("body").value || "").trim();
+    if (!body) { status.textContent = "Body required."; return; }
+
+    const r = await fetch("http://blog-api.{{domain}}/api/v1/comments", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({post_id: {{post["id"]}}, author, body})
+    });
+
+    if (!r.ok) {
+      status.textContent = "Failed (" + r.status + ")";
+      return;
+    }
+    status.textContent = "Posted. Refreshing…";
+    setTimeout(() => location.reload(), 350);
+  });
+})();
+</script>
+{% endblock %}

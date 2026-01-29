@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title }} • PulsePay</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="pp-body">
+  {% if show_nav is not defined or show_nav %}
+  <nav class="navbar navbar-expand-lg pp-nav border-bottom">
+    <div class="container">
+      <a class="navbar-brand pp-brand" href="/dashboard">PulsePay</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#ppNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div id="ppNav" class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/dashboard/billing">Billing</a></li>
+          <li class="nav-item"><a class="nav-link" href="/dashboard/settings">Account Settings</a></li>
+
+          {% if is_admin %}
+          <li class="nav-item">
+            <a class="nav-link pp-admin" href="/dashboard/partners">Foreign Business Partners</a>
+          </li>
+          {% endif %}
+        </ul>
+
+        <div class="d-flex align-items-center gap-3">
+          <div class="pp-user">
+            <div class="pp-user-name">{{ username }}</div>
+            <div class="pp-user-role">{{ role }}</div>
+          </div>
+          <a class="btn btn-sm pp-btn-outline" href="/logout">Sign out</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+
+  <main class="container py-4">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

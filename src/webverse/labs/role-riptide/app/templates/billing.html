@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="text-muted small">Workspace</div>
+        <div class="h5 mb-0">{{ user.name }}</div>
+        <div class="small text-muted">{{ user.email }}</div>
+        <div class="mt-2">
+          <span class="badge text-bg-secondary">role: {{ user.role }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-group shadow-sm">
+      <a class="list-group-item list-group-item-action" href="/dashboard">Dashboard</a>
+      <a class="list-group-item list-group-item-action" href="/dashboard/profile">Profile</a>
+      <a class="list-group-item list-group-item-action" href="/dashboard/settings">Account Settings</a>
+      {% if user.role == "admin" %}
+        <a class="list-group-item list-group-item-action list-group-item-warning" href="/dashboard/classified">
+          Classified Projects
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h1 class="h5">Billing</h1>
+        <p class="text-muted mb-4">
+          Manage subscription status and payment methods for internal tooling access.
+        </p>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-white">
+              <div class="text-muted small">Plan</div>
+              <div class="fw-semibold">LedgerWorks Internal — Standard</div>
+              <div class="small text-muted">Monthly access to project tracking & client portals</div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-white">
+              <div class="text-muted small">Status</div>
+              <div class="fw-semibold">Active</div>
+              <div class="small text-muted">Renews automatically</div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-white">
+              <div class="text-muted small">Payment method</div>
+              <div class="fw-semibold">•••• •••• •••• 4242</div>
+              <div class="small text-muted">VISA — Expires 12/28</div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-white">
+              <div class="text-muted small">Next invoice</div>
+              <div class="fw-semibold">$49.00 USD</div>
+              <div class="small text-muted">Generated on the 1st of each month</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-outline-primary" disabled>Update payment method</button>
+          <button class="btn btn-outline-danger" disabled>Cancel plan</button>
+          <a class="btn btn-outline-secondary ms-auto" href="/dashboard">Back</a>
+        </div>
+
+        <div class="mt-3 small text-muted">
+          Note: Billing actions are disabled in this demo environment. In production, changes are handled through a third-party processor.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{
+  "demo": true,
+  "users": [
+    {
+      "email": "ops.training@harborledger.local",
+      "role": "ops_viewer"
+    },
+    {
+      "email": "partner.demo@contoso.local",
+      "role": "partner_readonly"
+    }
+  ]
+}

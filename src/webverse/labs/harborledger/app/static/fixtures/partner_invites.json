@@ -1,0 +1,21 @@
+{
+  "generated": "2026-01-12T09:14:22Z",
+  "notes": "Month-end partner onboarding batch (do not publish)",
+  "invites": [
+    {
+      "code": "HL-PARTNER-READONLY-7G2Q",
+      "type": "partner_readonly",
+      "department": "Operations"
+    },
+    {
+      "code": "HL-FINANCE-MONTHEND-9K4M",
+      "type": "partner_finance",
+      "department": "Finance"
+    },
+    {
+      "code": "HL-VENDOR-CLAIMS-2P9J",
+      "type": "vendor_claims",
+      "department": "Claims"
+    }
+  ]
+}

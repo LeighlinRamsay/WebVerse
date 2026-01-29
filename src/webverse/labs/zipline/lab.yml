@@ -1,0 +1,8 @@
+id: zipline
+name: Zipline
+difficulty: medium
+description: "Law firm case exports. Downloading exports by public ID leaks an internal subdomain and credentials, leading to a second API with hidden config."
+compose_file: docker-compose.yml
+entrypoint:
+  base_url: http://zipline.local
+flag_sha256: a334d92743a0e0961c9f175a2bc3535eb40346df69197e60149e273e11c4a606

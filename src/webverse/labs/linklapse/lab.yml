@@ -1,0 +1,17 @@
+id: linklapse
+name: LinkLapse
+difficulty: medium
+description: >
+  LinkLapse ops suite. Exploit an OAuth account-linking flaw to bind your LinkID identity to a support seat (ATO).
+  Use internal chat to deliver a reflected-XSS link to ops. Admin loads your external JS which CORS-reads /api/v3/logs
+  (path leaked in client bundle) and reveals an LDAP bind where the flag was used as a password.
+compose_file: docker-compose.yml
+entrypoint:
+  base_url: http://app.linklapse.local
+flag_sha256: "0c8a43dcbdf022df052c0504bb985acc313b68e736fc9a2dcc0d3da40d856c13"
+tags:
+  - oauth
+  - account-takeover
+  - xss
+  - cors
+  - logs

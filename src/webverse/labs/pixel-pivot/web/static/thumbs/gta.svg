@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="500">
+  <rect width="100%" height="100%" fill="#111827"/>
+  <text x="50%" y="52%" fill="#fff" font-size="84" font-family="Arial" text-anchor="middle">GTA</text>
+  <text x="50%" y="66%" fill="#9ca3af" font-size="26" font-family="Arial" text-anchor="middle">Catalog sync</text>
+</svg>

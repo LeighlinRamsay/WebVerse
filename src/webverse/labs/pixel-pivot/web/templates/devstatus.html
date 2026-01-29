@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Development Status</h2>
+    <div class="muted">Milestones &amp; integration health</div>
+  </div>
+  <span class="badge bg-success-subtle text-success border border-success">Lead access</span>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card-ui p-4 h-100" style="background: rgba(0,0,0,.55);">
+      <h5 class="mb-3 text-white">Milestones</h5>
+      <div class="table-responsive">
+        <table class="table table-dark table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Phase</th>
+              <th>ETA</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Borderlands 5</td><td>Vertical Slice</td><td>Q2</td><td><span class="badge bg-warning text-dark">At Risk</span></td></tr>
+            <tr><td>GTA 6</td><td>Performance Pass</td><td>Q4</td><td><span class="badge bg-info text-dark">Tracking</span></td></tr>
+            <tr><td>Assassin's Creed V</td><td>Content Lock</td><td>Q3</td><td><span class="badge bg-success">On Track</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="muted small">This view aggregates partner feeds + internal tooling.</div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card-ui p-4 h-100" style="background: rgba(0,0,0,.55);">
+      <h5 class="mb-3 text-white">Integrations</h5>
+      <div id="integrations" class="vstack gap-3"></div>
+      <div class="text-white small mt-2">Endpoints are shown for ops validation.</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadIntegrations() {
+  const root = document.getElementById("integrations");
+  root.innerHTML = "";
+
+  try {
+    const res = await fetch("/api/v1/integrations/status", { credentials: "include" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+
+    const items = (data && data.items) ? data.items : [];
+    if (!items.length) {
+      const empty = document.createElement("div");
+      empty.className = "text-white";
+      empty.textContent = "No integrations found.";
+      root.appendChild(empty);
+      return;
+    }
+
+    items.forEach(x => {
+      let color = "secondary";
+      if (x.severity === "ok") color = "success";
+      else if (x.severity === "down") color = "danger";
+      else if (x.severity === "warn") color = "warning";
+
+      const endpoint = x.endpoint
+        ? `<div class="text-white small mt-1">Endpoint: <span class="text-white">${x.endpoint}</span></div>`
+        : `<div class="text-white small mt-1">Endpoint: <span class="text-white">(not configured)</span></div>`;
+
+      const el = document.createElement("div");
+      el.className = "card-ui p-3";
+      el.style.background = "rgba(0,0,0,.45)";
+      el.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="fw-semibold text-white">${x.name}</div>
+          <span class="badge bg-${color}">${x.status}</span>
+        </div>
+        ${endpoint}
+      `;
+      root.appendChild(el);
+    });
+  } catch (e) {
+    const err = document.createElement("div");
+    err.className = "text-white";
+    err.textContent = "Failed to load integrations.";
+    root.appendChild(err);
+  }
+}
+loadIntegrations();
+</script>
+{% endblock %}

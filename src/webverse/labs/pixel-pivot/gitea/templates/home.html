@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-1">Repositories</h2>
+<div class="text-secondary mb-4">Internal projects you have access to.</div>
+
+<div class="list-group">
+  {% for r in repos %}
+  <a class="list-group-item list-group-item-action bg-panel border-secondary text-light" href="/repo/{{ r.name }}">
+    <div class="d-flex justify-content-between">
+      <div>
+        <div class="fw-semibold">{{ r.name }}</div>
+        <div class="text-secondary small">{{ r.desc }}</div>
+      </div>
+      <div class="text-secondary small">{{ r.updated }}</div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

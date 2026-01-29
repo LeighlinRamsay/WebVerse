@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "sources": [
+    "webpack:///src/portal/bootstrap.ts",
+    "webpack:///src/portal/opsbridge.ts"
+  ],
+  "names": [],
+  "mappings": "",
+  "sourcesContent": [
+    "// bootstrap.ts\n// note: legacy bundle shipped with sourcemaps in prod\nconst cfg = {\n  apiBase: 'http://api.harborledger.local',\n  authBase: 'http://auth.harborledger.local',\n  filesBase: 'http://files.harborledger.local'\n};\n\n// small dev fixtures used during partner onboarding\n// (ops asked to keep these under /static/fixtures until Feb cutover)\nconst fixtures = '/static/fixtures/partner_invites.json';\n\n",
+    "// opsbridge.ts\n// export requests are routed through a legacy bridge (v1)\n// it expects internal-only keys from /internal/ops/keys\nconst bridgeBootstrap = '/internal/ops/keys';\n\n// importer uses server-side fetch; only internal doc hosts are allowed\nconst allowedHosts = ['portal.harborledger.local', 'files.harborledger.local'];\n\n// portal has a generic continue handler\nconst continueHandler = '/go?next=';\n"
+  ]
+}

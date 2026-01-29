@@ -1,0 +1,43 @@
+/* Force black-on-white theme for the whole portal */
+
+body {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* Anything using bg-panel should be black */
+.bg-panel {
+  background: #000 !important;
+}
+
+/* Bootstrap cards default to white; override */
+.card,
+.card-body {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* List group items default to white; override */
+.list-group-item {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.18) !important;
+}
+
+/* Hover/active states for list-group-item-action */
+.list-group-item-action:hover,
+.list-group-item-action:focus {
+  background: #0b0f17 !important;
+  color: #fff !important;
+}
+
+/* Your templates use text-secondary a lot; force it white */
+.text-secondary {
+  color: #fff !important;
+  opacity: .85;
+}
+
+/* Pre blocks in commit view */
+pre {
+  color: #fff !important;
+}

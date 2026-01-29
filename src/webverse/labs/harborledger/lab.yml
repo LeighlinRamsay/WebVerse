@@ -1,0 +1,11 @@
+id: harborledger
+name: HarborLedger
+difficulty: medium
+description: >
+  Sourcemap leak reveals a legacy ops bridge and hidden fixtures. Use exposed partner invite codes to get a privileged account,
+  then pivot through URL-import SSRF to reach a localhost-only ops endpoint. From there, recover an internal files token,
+  generate the executive reconciliation export, and grab the flag.
+compose_file: docker-compose.yml
+entrypoint:
+  base_url: http://portal.harborledger.local
+flag_sha256: "706ff6c58c3f3836ed0e158e879c341f01ee8ae51cd00d17430b583c25867f46"

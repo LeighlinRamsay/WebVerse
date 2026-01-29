@@ -1,0 +1,50 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.coverage
+.coverage.*
+htmlcov/
+dist/
+build/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+ENV/
+env/
+
+# ---- Packaging / installers ----
+pip-wheel-metadata/
+*.whl
+
+# ---- IDEs / editors ----
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ---- Logs / temp ----
+*.log
+*.tmp
+
+# ---- WebVerse runtime files ----
+progress.db
+progress.db-journal
+runtime.json
+*.sqlite
+*.sqlite3
+
+# ---- Docker ----
+**/.docker/
+docker-compose.override.yml
+
+# ---- OS-specific ----
+.DS_Store
+Thumbs.db

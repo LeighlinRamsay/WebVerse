@@ -1,0 +1,16 @@
+:root {
+  --panel: #000000;
+}
+
+/* Panel backgrounds */
+.bg-panel {
+  background: var(--panel) !important;
+}
+
+/* Message bubbles */
+.msg {
+  padding: 12px;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  background: #0b0f17;
+}

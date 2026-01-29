@@ -1,0 +1,2 @@
+recursive-include src/webverse/labs *
+recursive-include src/webverse/gui/icons *

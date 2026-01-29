@@ -1,0 +1,16 @@
+:root {
+  --panel: #12161f;
+}
+
+.bg-panel {
+  background: var(--panel);
+}
+
+.hover-raise:hover {
+  transform: translateY(-2px);
+  transition: 120ms ease;
+}
+
+.thumb img {
+  background: #0b0f17;
+}

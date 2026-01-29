@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="card">
+  <h2>Accept invite</h2>
+  {% if error %}<p class="err">{{ error }}</p>{% endif %}
+  {% if invite %}
+    <p class="muted">You are joining <strong>{{ invite.org }}</strong> as <code>{{ invite.type }}</code>.</p>
+    <form method="post">
+      <input type="hidden" name="code" value="{{ invite.code }}" />
+      <div class="row">
+        <div>
+          <label>Email</label><br/>
+          <input name="email" placeholder="name@company.com" required />
+        </div>
+        <div>
+          <label>Password</label><br/>
+          <input name="password" type="password" required />
+        </div>
+      </div>
+      <p style="margin-top:14px;"><button type="submit">Create account</button></p>
+    </form>
+    <p class="muted">Invite created: <code>{{ invite.created }}</code></p>
+  {% else %}
+    <p class="muted">Provide your invite code below.</p>
+    <form method="get">
+      <input name="code" placeholder="HL-..." />
+      <button type="submit">Continue</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

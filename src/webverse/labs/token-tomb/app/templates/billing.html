@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-end justify-content-between mb-4">
+  <div>
+    <h1 class="h3 mb-1">Billing</h1>
+    <div class="text-secondary">Subscription and settlement summaries.</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="pp-card p-3">
+      <div class="h5 mb-1">Plan</div>
+      <div class="text-secondary small mb-3">PulsePay Pilot • Monthly</div>
+
+      <div class="d-flex justify-content-between border-top pt-3">
+        <div class="text-secondary">Next renewal</div>
+        <div>14 days</div>
+      </div>
+      <div class="d-flex justify-content-between border-top pt-3 mt-3">
+        <div class="text-secondary">Status</div>
+        <div><span class="badge text-bg-success">Active</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="pp-card p-3">
+      <div class="h5 mb-1">Settlement</div>
+      <div class="text-secondary small mb-3">Payout batches and reconciliation summary.</div>
+
+      <div class="pp-kv">
+        <div class="pp-k">Last payout batch</div>
+        <div class="pp-v">Completed</div>
+      </div>
+      <div class="pp-kv">
+        <div class="pp-k">Disputes (30d)</div>
+        <div class="pp-v">12</div>
+      </div>
+      <div class="pp-kv">
+        <div class="pp-k">Chargeback rate</div>
+        <div class="pp-v">0.19%</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

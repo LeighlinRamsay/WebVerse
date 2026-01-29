@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>LinkLapse • Trouble signing in</title>
+    <style>
+      body { font-family: Arial; background:#0b0e12; color:#e8eefc; padding:24px; }
+      .card { max-width: 760px; margin: 0 auto; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px; }
+      .muted { color: rgba(232,238,252,0.72); font-size: 13px; line-height: 1.5; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+      .panel { background: rgba(0,0,0,0.20); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; }
+      input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.10); background: rgba(0,0,0,0.25); color: #e8eefc; }
+      button { margin-top: 10px; width: 100%; padding: 10px 12px; border-radius: 10px; border: 0; background: #ffb84a; color: #10131a; font-weight: 700; cursor: pointer; }
+      a { color: #ffcc7a; text-decoration: none; }
+      code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 8px; }
+      .error { margin-top: 10px; background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.30); padding: 10px 12px; border-radius: 10px; color: rgba(255,220,220,0.95); }
+      @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2 style="margin:0 0 6px 0;">Trouble signing in</h2>
+      <div class="muted">
+        If your LinkID (SSO) sign-in succeeds but you land back here, your LinkID identity may not be linked
+        to a local LinkLapse account yet.
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <h3 style="margin:0 0 6px 0;">Link an existing account</h3>
+          <div class="muted">
+            Enter the email address for the local account you want to link to LinkID. You’ll be redirected to LinkID to approve.
+          </div>
+
+          {% if error %}
+            <div class="error">{{ error }}</div>
+          {% endif %}
+
+          <form method="post" action="/auth/opalid/link">
+            <div style="margin-top:10px;">
+              <input name="target_email" value="{{ prefill }}" placeholder="name@linklapse.local" autocomplete="email">
+            </div>
+            <button type="submit">Continue to LinkID</button>
+          </form>
+
+          <div class="muted" style="margin-top:10px;">
+            (For support: try <code>mode=link</code> if you’re testing the OAuth callback.)
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 style="margin:0 0 6px 0;">Common causes</h3>
+          <div class="muted">
+            • First-time LinkID users need linking<br>
+            • Incorrect email address<br>
+            • Using a personal LinkID instead of corporate<br><br>
+            Back to <a href="/auth/login">sign in</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

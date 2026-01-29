@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% set subtitle = "Connected Accounts" %}
+{% block content %}
+  <div class="card" style="max-width:860px">
+    <h2 style="margin-top:0">Connected accounts</h2>
+    <p class="muted">Link your LinkID identity to this LinkLapse account for easier login.</p>
+
+    <p>Signed in as <span class="pill">{{ session.email }}</span> (<span class="pill">{{ session.role }}</span>)</p>
+
+    <hr />
+    <p class="muted">LinkID link flow:</p>
+    <p><a class="pill" href="{{ link_url }}">Link LinkID</a></p>
+
+    <p class="muted" style="margin-top:14px">
+      Dev note: callback handles both "link" and "login" modes.
+    </p>
+  </div>
+{% endblock %}

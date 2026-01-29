@@ -1,0 +1,42 @@
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+      - fetcher
+    networks:
+      - aster_net
+
+  app:
+    build: ./app
+    networks:
+      - aster_net
+
+  fetcher:
+    build: ./fetcher
+    environment:
+      - SIGNING_KEY=WEBVERSE{51GN3D_URL5_D0N7_H1D3_53CR375}
+    depends_on:
+      - reports
+      - canary_code
+    networks:
+      - aster_net
+
+  reports:
+    build: ./reports
+    environment:
+      - DEV_ENDPOINT=http://canary-code.astercheck.local/
+      - COMPANY_NAME=AsterLynx Security
+    networks:
+      - aster_net
+
+  canary_code:
+    build: ./canary_code
+    networks:
+      - aster_net
+
+networks:
+  aster_net:
+    driver: bridge
