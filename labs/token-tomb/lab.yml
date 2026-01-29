@@ -1,8 +1,0 @@
-id: token-tomb
-name: Token Tomb
-difficulty: easy
-description: "PulsePay console uses JWTs but accepts alg=none, allowing role escalation to admin and exposure of foreign partner PII."
-compose_file: docker-compose.yml
-entrypoint:
-  base_url: http://localhost:8091
-flag_sha256: 8eed89b975b1b80a2397535d5f4ecff57c5956a4027ec08ded3b8f31c3239518
