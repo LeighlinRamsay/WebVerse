@@ -10,7 +10,7 @@ WebVerse is a local **web & API security lab runner** — a desktop app that dis
 
 <img width="1916" height="885" alt="HOME UPDATED" src="https://github.com/user-attachments/assets/9191393e-de4c-4d87-8945-04d4d05ec87d" />
 
-<img width="1916" height="891" alt="PIXEL PIVOT UPDATED new" src="https://github.com/user-attachments/assets/bb287f36-8aae-4155-b9ab-140dbb37c35b" />
+<img width="1911" height="882" alt="PIXEL" src="https://github.com/user-attachments/assets/5ea6d593-030f-4342-af0f-d707f0c4352c" />
 
 <img width="1916" height="890" alt="BROWSE LABS UPDATED" src="https://github.com/user-attachments/assets/cb82b786-01e4-4eee-95b0-1a7f928507c8" />
 
