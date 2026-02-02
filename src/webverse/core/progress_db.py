@@ -1,6 +1,7 @@
 # core/progress_db.py
 import sqlite3
 import time
+import uuid
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
@@ -53,8 +54,57 @@ def connect():
     cols = {row[1] for row in cur.fetchall()}
     if "notes" not in cols:
         conn.execute("ALTER TABLE progress ADD COLUMN notes TEXT DEFAULT ''")
+
+    # ---- device identity (anonymous) ----
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS device (
+        id TEXT PRIMARY KEY,
+        created_at TEXT,
+        first_seen_sent INTEGER DEFAULT 0
+    )
+    """)
+
+    cur = conn.cursor()
+    cur.execute("PRAGMA table_info(device)")
+    dev_cols = {row[1] for row in cur.fetchall()}
+    if "first_seen_sent" not in dev_cols:
+        conn.execute("ALTER TABLE device ADD COLUMN first_seen_sent INTEGER DEFAULT 0")
+
+    cur.execute("SELECT id FROM device LIMIT 1")
+    row = cur.fetchone()
+    if not row:
+        did = str(uuid.uuid4())
+        conn.execute(
+            "INSERT INTO device (id, created_at, first_seen_sent) VALUES (?,?,0)",
+            (did, datetime.now(timezone.utc).isoformat())
+        )
+
     conn.commit()
     return conn
+
+def get_device_id() -> str:
+    with connect() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM device LIMIT 1")
+        row = cur.fetchone()
+        return str(row[0])
+
+
+def get_first_seen_sent() -> bool:
+    with connect() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT COALESCE(first_seen_sent,0) FROM device LIMIT 1")
+        row = cur.fetchone()
+        return bool(int(row[0] or 0))
+
+
+def set_first_seen_sent(sent: bool = True) -> None:
+    with connect() as conn:
+        conn.execute(
+            "UPDATE device SET first_seen_sent=?",
+            (1 if sent else 0,)
+        )
+        conn.commit()
 
 def mark_started(lab_id: str):
     """
@@ -75,6 +125,13 @@ def mark_started(lab_id: str):
         )
         cur.execute("UPDATE progress SET started_at=? WHERE lab_id=?", (ts, lab_id))
     _invalidate(lab_id)
+    
+    # Best-effort telemetry (never blocks, never breaks the app)
+    try:
+        from webverse.core.usercounter import send_event
+        send_event("lab_started", {"lab_id": lab_id})
+    except Exception:
+        pass
 
 def mark_attempt(lab_id: str):
     """
@@ -109,6 +166,13 @@ def mark_solved(lab_id: str):
                 (datetime.now(timezone.utc).isoformat(), lab_id)
             )
     _invalidate(lab_id)
+    
+    # Best-effort telemetry (never blocks, never breaks the app)
+    try:
+        from webverse.core.usercounter import send_event
+        send_event("lab_solved", {"lab_id": lab_id})
+    except Exception:
+        pass
 
 def get_progress_map():
     ts, data = _cache["progress_map"]

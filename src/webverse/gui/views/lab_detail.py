@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import (
 
 from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal, QUrl, QTimer, QEvent, QSize, QRect, QRectF, QPoint
 from PyQt5.QtGui import QDesktopServices, QIcon, QPainter, QColor, QPen, QPixmap, QFontMetrics
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QLayout
 
 from webverse.gui.util_avatar import lab_circle_icon, lab_badge_icon
 from webverse.core import docker_ops
@@ -800,6 +800,14 @@ class LabDetailView(QWidget):
 		pv = QVBoxLayout(pill_wrap)
 		pv.setContentsMargins(0, 0, 0, 0)
 		pv.setSpacing(0)  # IMPORTANT: pills touch
+
+		# 🔒 Make this container hug its contents (prevents "stretch left")
+		pv.setSizeConstraint(QLayout.SetFixedSize)
+
+		pill_wrap.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+		self.flag_status_pill.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+		self.flag_difficulty_pill.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
 		pv.addWidget(self.flag_status_pill, 0, Qt.AlignRight | Qt.AlignTop)
 		pv.addWidget(self.flag_difficulty_pill, 0, Qt.AlignRight | Qt.AlignTop)
 
@@ -1070,20 +1078,22 @@ class LabDetailView(QWidget):
 		if not hasattr(self, "flag_status_pill") or not hasattr(self, "flag_difficulty_pill"):
 			return
 
-		self.flag_status_pill.adjustSize()
-		self.flag_difficulty_pill.adjustSize()
+		pills = (self.flag_status_pill, self.flag_difficulty_pill)
 
-		w = max(
-			self.flag_status_pill.sizeHint().width(),
-			self.flag_difficulty_pill.sizeHint().width(),
-		)
+		# IMPORTANT:
+		# If these labels already have a fixed width, Qt's sizeHint() can be >= that width.
+		# If we then add padding (+18) again, they "creep" wider on every refresh.
+		# So: temporarily remove width constraints, measure, then re-apply fixed width.
+		for p in pills:
+			p.setMinimumWidth(0)
+			p.setMaximumWidth(16777215)
+			p.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+			p.adjustSize()
 
-		# Make them a bit wider so they extend left more (matches your screenshot request)
-		# This is intentionally modest; tweak if you want even wider.
-		w += 18
+		w = max(p.sizeHint().width() for p in pills) + 18
 
-		self.flag_status_pill.setFixedWidth(w)
-		self.flag_difficulty_pill.setFixedWidth(w)
+		for p in pills:
+			p.setFixedWidth(w)
 
 	def _set_flag_status(self, status: str, attempts: int):
 		"""
