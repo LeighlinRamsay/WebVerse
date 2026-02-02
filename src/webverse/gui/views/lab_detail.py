@@ -4,6 +4,9 @@ from __future__ import annotations
 import os
 import math
 import time
+import socket
+import re
+from pathlib import Path
 from collections import deque
 from datetime import datetime
 from typing import Optional
@@ -1467,6 +1470,99 @@ class LabDetailView(QWidget):
 			return f"{m}m {s:02d}s"
 		return f"{s}s"
 
+	def _port_available(self, port: int) -> bool:
+		"""
+		Best-effort local port availability check.
+		Returns True if we can bind to the port on 0.0.0.0, else False.
+		"""
+		try:
+			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			try:
+				# Avoid TIME_WAIT false negatives on some platforms
+				s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+				s.bind(("0.0.0.0", int(port)))
+				return True
+			finally:
+				try:
+					s.close()
+				except Exception:
+					pass
+		except Exception:
+			return False
+
+	def _extract_host_ports_from_compose(self, compose_text: str) -> list[int]:
+		"""
+		Extract host ports from docker-compose.yml text (common patterns).
+		We only care about ports that will actually bind on the host.
+		"""
+		if not compose_text:
+			return []
+
+		txt = compose_text
+		ports: set[int] = set()
+
+		# Pattern A: long form mapping with 'published: 8080'
+		for m in re.finditer(r"(?im)^\s*published\s*:\s*(\d+)\s*$", txt):
+			try:
+				ports.add(int(m.group(1)))
+			except Exception:
+				pass
+
+		# Pattern B: short form strings in ports list:
+		# - "8080:80"
+		# - "127.0.0.1:8080:80"
+		# - 8080:80
+		# (We ignore bare "80" because that doesn't bind a host port.)
+		for line in txt.splitlines():
+			l = line.strip()
+			if not l.startswith("-"):
+				continue
+
+			# strip list marker and surrounding quotes
+			val = l[1:].strip().strip('"').strip("'")
+
+			# remove trailing comments
+			if "#" in val:
+				val = val.split("#", 1)[0].strip()
+
+			# Only consider mappings with at least one colon
+			if ":" not in val:
+				continue
+
+			parts = [p.strip() for p in val.split(":") if p.strip()]
+
+			# Cases:
+			# host:container  -> ["8080","80"] => host is parts[0]
+			# ip:host:container -> ["127.0.0.1","8080","80"] => host is parts[1]
+			# (If weird extras exist, we still try best-effort.)
+			host_part = None
+			if len(parts) == 2 and parts[0].isdigit():
+				host_part = parts[0]
+			elif len(parts) >= 3 and parts[1].isdigit():
+				host_part = parts[1]
+
+			if host_part:
+				try:
+					ports.add(int(host_part))
+				except Exception:
+					pass
+
+		return sorted(ports)
+
+	def _get_lab_host_ports(self, lab) -> list[int]:
+		"""
+		Load the lab's compose file and return host ports it intends to bind.
+		"""
+		try:
+			compose_name = getattr(lab, "compose_file", "docker-compose.yml") or "docker-compose.yml"
+			compose_path = Path(str(lab.path)) / compose_name
+			if not compose_path.exists():
+				return []
+			txt = compose_path.read_text(encoding="utf-8", errors="ignore")
+			return self._extract_host_ports_from_compose(txt)
+		except Exception:
+			return []
+
 	def _tick_uptime(self):
 		# Uses progress.started_at if available; otherwise shows —
 		if not self._lab or not hasattr(self, "_k_uptime_v"):
@@ -1517,6 +1613,28 @@ class LabDetailView(QWidget):
 
 			self._toast("Blocked", "You can only launch one lab at a time.", variant="error", ms=2000)
 			return
+
+		# ✅ Pre-check host ports before running docker compose
+		try:
+			needed_ports = self._get_lab_host_ports(lab)
+			if needed_ports:
+				busy = [p for p in needed_ports if not self._port_available(p)]
+				if busy:
+					plist = ", ".join(str(p) for p in busy[:6])
+					more = ""
+					if len(busy) > 6:
+						more = f" (+{len(busy) - 6} more)"
+					self._toast(
+						"Port in use",
+						f"This lab needs host port(s) {plist}{more}, but they're already in use. Stop the service using them, then try again.",
+						variant="error",
+						ms=2800,
+					)
+					self._append_activity(f"❌ Launch blocked: port(s) in use: {', '.join(str(p) for p in busy)}")
+					return
+		except Exception:
+			# Never block launch due to precheck errors
+			pass
 
 		self._set_op_state("starting")
 

@@ -40,6 +40,9 @@ class Toast(QFrame):
 		self.hide()
 
 	def show_toast(self, title: str, body: str, variant: str = "success", ms: int = 1700):
+		self._timer.stop()
+		self._pending_ms = ms
+
 		self.setProperty("variant", variant)
 		self.style().unpolish(self)
 		self.style().polish(self)
@@ -48,10 +51,16 @@ class Toast(QFrame):
 		self.title.setText(title)
 		self.body.setText(body)
 		self.adjustSize()
+
+		# Delay one tick so parent/overlay geometry is finalized (fixes first-toast clipping)
+		QTimer.singleShot(0, self._deferred_show)
+
+	def _deferred_show(self):
+		self.adjustSize()
 		self._position()
 		self.show()
 		self.raise_()
-		self._timer.start(ms)
+		self._timer.start(self._pending_ms)
 
 	def _position(self):
 		p = self.parentWidget()
@@ -84,6 +93,9 @@ class ToastHost(QWidget):
 		if obj is self._parent and event.type() == QEvent.Resize:
 			# Overlay follows parent size so Toast._position() is correct
 			self.resize(self._parent.size())
+			# If a toast is up while resizing, reposition on next tick (avoids transient geometry)
+			if self.toast.isVisible():
+				QTimer.singleShot(0, self.toast._position)
 		return super().eventFilter(obj, event)
 
 	def show_toast(self, title: str, body: str, variant: str = "success", ms: int = 1700):
