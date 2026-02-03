@@ -6,6 +6,13 @@ WebVerse is a local **web & API security lab runner** — a desktop app that dis
 
 ---
 
+### Install WebVerse from GitHub
+```bash
+pipx install git+https://github.com/LeighlinRamsay/WebVerse.git
+```
+
+---
+
 ## Screenshot / Demo]
 
 <img width="1916" height="885" alt="HOME UPDATED" src="https://github.com/user-attachments/assets/9191393e-de4c-4d87-8945-04d4d05ec87d" />
