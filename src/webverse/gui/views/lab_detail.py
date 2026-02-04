@@ -22,6 +22,7 @@ from PyQt5.QtGui import QDesktopServices, QIcon, QPainter, QColor, QPen, QPixmap
 from PyQt5.QtWidgets import QApplication, QLayout
 
 from webverse.gui.util_avatar import lab_circle_icon, lab_badge_icon
+from webverse.core.xp import base_xp_for_difficulty
 from webverse.core import docker_ops
 from webverse.core import progress_db
 from webverse.core.runtime import set_running_lab, get_running_lab
@@ -816,8 +817,8 @@ class LabDetailView(QWidget):
 
 		toprow.addWidget(pill_wrap, 0, Qt.AlignRight | Qt.AlignTop)
 
-		# Attempts only (status is now shown via the pill)
-		self.flag_meta = QLabel("Attempts: —")
+		# XP reward (simple game feedback; we do not track attempts)
+		self.flag_meta = QLabel("XP Reward: —")
 		self.flag_meta.setObjectName("Muted")
 		self.flag_meta.setWordWrap(True)
 		fp.addWidget(self.flag_meta)
@@ -1098,10 +1099,10 @@ class LabDetailView(QWidget):
 		for p in pills:
 			p.setFixedWidth(w)
 
-	def _set_flag_status(self, status: str, attempts: int):
+	def _set_flag_status(self, status: str):
 		"""
-		Updates the STATUS pill and Attempts line.
-		status: "Solved" | "Active" | "Unsolved"
+		Updates the STATUS pill and the small meta line under "Submit Flag".
+		We intentionally do NOT track attempts (game feel: exploration isn't punished).
 		"""
 		if not hasattr(self, "flag_status_pill"):
 			return
@@ -1117,10 +1118,15 @@ class LabDetailView(QWidget):
 			self.flag_status_pill.setText("UNSOLVED")
 			self.flag_status_pill.setProperty("variant", "unsolved")
 
+		# meta: XP reward for this lab (based on difficulty)
 		try:
-			self.flag_meta.setText(f"Attempts: {int(attempts)}")
+			lab = getattr(self, "_lab", None)
+			reward = 0
+			if lab is not None:
+				reward = base_xp_for_difficulty(getattr(lab, "difficulty", "") or "")
+			self.flag_meta.setText(f"XP Reward: {int(reward)} XP" if reward else "XP Reward: —")
 		except Exception:
-			self.flag_meta.setText("Attempts: —")
+			self.flag_meta.setText("XP Reward: —")
 
 		self.flag_status_pill.style().unpolish(self.flag_status_pill)
 		self.flag_status_pill.style().polish(self.flag_status_pill)
@@ -1371,12 +1377,10 @@ class LabDetailView(QWidget):
 
 		# progress info
 		prog = self.state.progress_map().get(lab.id, {}) if hasattr(self.state, "progress_map") else {}
-		attempts = int(prog.get("attempts") or 0)
-		started_at = prog.get("started_at")
 		solved_at = prog.get("solved_at")
 
 		status = self._compute_flag_status(solved_at, lab.id)
-		self._set_flag_status(status, attempts)
+		self._set_flag_status(status)
 		self._set_flag_difficulty(getattr(lab, "difficulty", "") or "Unknown")
 		self._update_flag_lock(bool(solved_at))
 		self._sync_flag_pills_width()
@@ -1650,7 +1654,7 @@ class LabDetailView(QWidget):
 
 				# status pill should reflect running state
 				try:
-					self._set_flag_status("Active", int((self.state.progress_map().get(lab.id, {}) or {}).get("attempts") or 0))
+					self._set_flag_status("Active")
 				except Exception:
 					self._set_flag_status("Active", 0)
 			else:
@@ -1673,16 +1677,6 @@ class LabDetailView(QWidget):
 				self.state.set_running_lab_id(None)
 				self._append_activity("✅ Lab stopped.")
 
-				# ✅ Attempts mean: started → stopped without solving.
-				# Only increment if the lab is NOT solved.
-				try:
-					prog = self.state.progress_map().get(lab.id, {}) if hasattr(self.state, "progress_map") else {}
-					solved_at = prog.get("solved_at")
-					if not solved_at:
-						progress_db.mark_attempt(lab.id)
-				except Exception:
-					# attempts are non-critical; never break stop UX
-					pass
 			else:
 				self._append_activity("❌ Failed to stop lab.")
 				if msg:
@@ -1692,7 +1686,7 @@ class LabDetailView(QWidget):
 			# status pill should reflect not-running (unless solved)
 			try:
 				prog = self.state.progress_map().get(lab.id, {}) if hasattr(self.state, "progress_map") else {}
-				self._set_flag_status(self._compute_flag_status(prog.get("solved_at"), lab.id), int(prog.get("attempts") or 0))
+				self._set_flag_status(self._compute_flag_status(prog.get("solved_at"), lab.id))
 				self._update_flag_lock(bool(prog.get("solved_at")))
 			except Exception:
 				pass
@@ -1723,7 +1717,7 @@ class LabDetailView(QWidget):
 				# status pill should reflect running state
 				try:
 					prog = self.state.progress_map().get(lab.id, {}) if hasattr(self.state, "progress_map") else {}
-					self._set_flag_status("Active", int(prog.get("attempts") or 0))
+					self._set_flag_status("Active")
 				except Exception:
 					self._set_flag_status("Active", 0)
 			else:
@@ -1744,7 +1738,7 @@ class LabDetailView(QWidget):
 				# reflect not-running
 				try:
 					prog = self.state.progress_map().get(lab.id, {}) if hasattr(self.state, "progress_map") else {}
-					self._set_flag_status(self._compute_flag_status(prog.get("solved_at"), lab.id), int(prog.get("attempts") or 0))
+					self._set_flag_status(self._compute_flag_status(prog.get("solved_at"), lab.id))
 					self._update_flag_lock(bool(prog.get("solved_at")))
 				except Exception:
 					pass
@@ -1831,13 +1825,10 @@ class LabDetailView(QWidget):
 
 			self._toast("Nope", "Incorrect flag.", variant="error", ms=1600)
 
-		# refresh meta (attempts/status) if your state tracks it
 		try:
 			prog = self.state.progress_map().get(lab.id, {}) if hasattr(self.state, "progress_map") else {}
-			attempts = int(prog.get("attempts") or 0)
-			started_at = prog.get("started_at")
 			solved_at = prog.get("solved_at")
-			self._set_flag_status(self._compute_flag_status(solved_at, lab.id), attempts)
+			self._set_flag_status(self._compute_flag_status(solved_at, lab.id))
 			self._update_flag_lock(bool(solved_at))
 			self._sync_flag_pills_width()
 		except Exception:

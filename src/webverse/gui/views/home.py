@@ -9,10 +9,12 @@ from PyQt5.QtWidgets import (
 )
 
 from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QPointF, QObject, QRectF, QRect, QSize
-from PyQt5.QtGui import QCursor, QPalette, QColor, QPainter, QPen, QLinearGradient, QPainterPath, QFont, QFontMetrics, QIcon, QRegion
+from PyQt5.QtGui import QCursor, QPalette, QColor, QPainter, QPen, QLinearGradient, QPainterPath, QFont, QFontMetrics, QIcon, QRegion, QPixmap
 
 from webverse.gui.widgets.pill import Pill
 from webverse.core.xp import base_xp_for_difficulty
+from webverse.core.progress_db import get_progress_map
+from webverse.core.ranks import rank_for_xp, total_xp as _total_xp, solved_count as _solved_count, completion_percent as _completion_percent
 from webverse.gui.widgets.row_hover_delegate import RowHoverDelegate
 from webverse.gui.util_avatar import lab_badge_icon, lab_circle_icon
 
@@ -291,6 +293,56 @@ def _force_dark_combo_popup(cb: QComboBox):
 	cb._popup_fixer = fixer  # keep alive
 
 
+class _XPBar(QFrame):
+	def __init__(self, parent=None):
+		super().__init__(parent)
+		self.setObjectName("XPBar")
+		self.setAttribute(Qt.WA_StyledBackground, True)
+		self._fill = QFrame(self)
+		self._fill.setObjectName("XPFill")
+		self._fill.setAttribute(Qt.WA_StyledBackground, True)
+		self._frac = 0.0
+
+	def set_fraction(self, frac: float):
+		try:
+			self._frac = max(0.0, min(1.0, float(frac)))
+		except Exception:
+			self._frac = 0.0
+		self._relayout()
+
+	def resizeEvent(self, e):
+		super().resizeEvent(e)
+		self._relayout()
+
+	def _relayout(self):
+		w = self.width()
+		h = self.height()
+		fw = int(w * self._frac)
+		self._fill.setGeometry(0, 0, fw, h)
+
+
+def _emblem(text: str, size: int = 54) -> QPixmap:
+	pm = QPixmap(size, size)
+	pm.fill(Qt.transparent)
+	p = QPainter(pm)
+	p.setRenderHint(QPainter.Antialiasing, True)
+	ring = QColor(245, 197, 66, 220)
+	pen = QPen(ring)
+	pen.setWidth(3)
+	p.setPen(pen)
+	p.setBrush(QColor(16, 20, 28, 220))
+	p.drawEllipse(3, 3, size - 6, size - 6)
+	p.setPen(Qt.NoPen)
+	p.setBrush(QColor(245, 197, 66, 60))
+	p.drawEllipse(10, 10, size - 20, size - 20)
+	p.setPen(QColor(245, 247, 255, 235))
+	f = QFont("Inter", max(10, int(size * 0.28)))
+	f.setBold(True)
+	p.setFont(f)
+	p.drawText(pm.rect(), Qt.AlignCenter, text)
+	p.end()
+	return pm
+
 class HomeView(QWidget):
 	nav_labs = pyqtSignal()
 	request_select_lab = pyqtSignal(str)
@@ -329,19 +381,50 @@ class HomeView(QWidget):
 		stats = QHBoxLayout()
 		stats.setSpacing(12)
 
-		self.card_total = self._stat_card("Total Labs", "0", "Discovered from /labs")
-		self.card_solved = self._stat_card("Solved", "0", "Flags accepted")
-		self.card_unsolved = self._stat_card("Unsolved", "0", "Available wins")
-		self.card_attempts = self._stat_card("Attempts", "0", "Total flag submissions")
+		# Rank card (takes space of two boxes)
+		self.rank_card = QFrame()
+		self.rank_card.setObjectName("PlayerCard")
+		self.rank_card.setAttribute(Qt.WA_StyledBackground, True)
+		self.rank_card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-		stats.addWidget(self.card_total)
-		stats.addWidget(self.card_solved)
-		stats.addWidget(self.card_unsolved)
-		stats.addWidget(self.card_attempts)
+		rcl = QHBoxLayout(self.rank_card)
+		rcl.setContentsMargins(14, 14, 14, 14)
+		rcl.setSpacing(12)
+
+		self.rank_icon = QLabel()
+		self.rank_icon.setFixedSize(54, 54)
+		rcl.addWidget(self.rank_icon, 0, Qt.AlignTop)
+
+		col = QVBoxLayout()
+		col.setSpacing(6)
+		rcl.addLayout(col, 1)
+
+		self.rank_name = QLabel("Bronze I")
+		self.rank_name.setObjectName("RankName")
+		col.addWidget(self.rank_name)
+
+		self.rank_sub = QLabel("0 XP")
+		self.rank_sub.setObjectName("Muted")
+		col.addWidget(self.rank_sub)
+
+		self.xp_bar = _XPBar()
+		self.xp_bar.setFixedHeight(10)
+		col.addWidget(self.xp_bar)
+
+		self.rank_next = QLabel("Next rank: —")
+		self.rank_next.setObjectName("Subtle")
+		col.addWidget(self.rank_next)
+
+		self.card_total = self._stat_card("Total Labs", "0", "Discovered from /labs")
+		self.card_completion = self._stat_card("Completion", "0%", "Solved / Total")
+
+		stats.addWidget(self.rank_card, 2)
+		stats.addWidget(self.card_total, 1)
+		stats.addWidget(self.card_completion, 1)
 		root.addLayout(stats)
 
 		# Give the stat cards more presence.
-		for c in (self.card_total, self.card_solved, self.card_unsolved, self.card_attempts):
+		for c in (self.rank_card, self.card_total, self.card_completion):
 			c.setMinimumHeight(94)
 
 		# ---- Main row: table ----
@@ -458,6 +541,21 @@ class HomeView(QWidget):
 
 		self._refresh_all()
 
+		# Keep Home stats live
+		try:
+			self.state.labs_changed.connect(self._refresh_all)
+		except Exception:
+			pass
+		try:
+			if hasattr(self.state, "progress_changed"):
+				self.state.progress_changed.connect(self._refresh_all)
+		except Exception:
+			pass
+		try:
+			self.state.running_changed.connect(lambda _lab: self._refresh_all())
+		except Exception:
+			pass
+
 	def _stat_card(self, label: str, value: str, sub: str) -> QFrame:
 		card = QFrame()
 		card.setObjectName("StatCard")
@@ -493,15 +591,31 @@ class HomeView(QWidget):
 
 	def _refresh_stats(self):
 		labs = self.state.labs()
+		progress = self.state.progress_map() if hasattr(self.state, "progress_map") else get_progress_map()
+
 		total = len(labs)
-		solved = sum(1 for x in labs if self.state.is_solved(x.id))
-		unsolved = total - solved
-		attempts = self.state.total_attempts()
+		solved = _solved_count(labs, progress)
+		completion = _completion_percent(total, solved)
+
+		total_xp = _total_xp(labs, progress)
+		rank_name, rank_floor, next_name, next_floor = rank_for_xp(total_xp)
+
+		self.rank_name.setText(rank_name)
+		self.rank_sub.setText(f"{total_xp} XP")
+		self.rank_icon.setPixmap(_emblem(rank_name.split()[0][0], 54))
+
+		if next_name and next_floor is not None:
+			need = max(0, next_floor - total_xp)
+			span = max(1, next_floor - rank_floor)
+			frac = max(0.0, min(1.0, (total_xp - rank_floor) / span))
+			self.xp_bar.set_fraction(frac)
+			self.rank_next.setText(f"Next rank: {next_name}  •  {need} XP to go")
+		else:
+			self.xp_bar.set_fraction(1.0)
+			self.rank_next.setText("Max rank reached.")
 
 		self.card_total._value_label.setText(str(total))
-		self.card_solved._value_label.setText(str(solved))
-		self.card_unsolved._value_label.setText(str(unsolved))
-		self.card_attempts._value_label.setText(str(attempts))
+		self.card_completion._value_label.setText(f"{completion}%")
 
 	def _filtered_labs(self):
 		q = (self.search.text() or "").strip().lower()

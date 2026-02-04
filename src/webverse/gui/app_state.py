@@ -62,12 +62,12 @@ class AppState(QObject):
         submitted = (flag or "").strip()
 
         if not submitted:
-            self.mark_attempt(lab_id)
             return (False, "Empty flag.")
 
         # count progress
+        # If a user submits a flag, we treat that as engagement with the lab.
+        # We intentionally do NOT track "attempts" (game feel: exploration is not punished).
         self.mark_started(lab_id)
-        self.mark_attempt(lab_id)
 
         # find lab
         lab = next((x for x in self._labs if str(x.id) == lab_id), None)

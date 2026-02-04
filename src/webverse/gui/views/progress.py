@@ -22,6 +22,7 @@ from webverse.core.runtime import get_running_lab
 from webverse.core.xp import base_xp_for_difficulty
 from webverse.core.progress_db import get_progress_map
 from webverse.gui.util_avatar import lab_badge_icon, lab_circle_icon
+from webverse.core.ranks import rank_for_xp, total_xp as _total_xp, solved_count as _solved_count, completion_percent as _completion_percent, solve_streak_days as _solve_streak_days
 
 class ProgressView(QWidget):
 	# MainWindow will connect this to navigate into the lab detail page
@@ -105,7 +106,7 @@ class ProgressView(QWidget):
 		self.track_title.setObjectName("H2")
 		tl.addWidget(self.track_title)
 
-		self.track_hint = QLabel("Solve higher difficulties for bigger XP. Clean solves earn bonus XP.")
+		self.track_hint = QLabel("Solve higher difficulties for bigger XP. Maintain streaks and climb ranks.")
 		self.track_hint.setObjectName("Muted")
 		self.track_hint.setWordWrap(True)
 		tl.addWidget(self.track_hint)
@@ -116,10 +117,10 @@ class ProgressView(QWidget):
 		layout.addLayout(stats)
 
 		self.stat_solves = self._stat_card("Solves", "0")
-		self.stat_xp = self._stat_card("XP", "0")
-		self.stat_attempts = self._stat_card("Attempts", "0")
-		self.stat_winrate = self._stat_card("Win Rate", "0%")
-		for w in (self.stat_solves, self.stat_xp, self.stat_attempts, self.stat_winrate):
+		self.stat_streak = self._stat_card("Solve Streak", "0")
+		self.stat_completion = self._stat_card("Completion", "0%")
+		self.stat_total = self._stat_card("Total Labs", "0")
+		for w in (self.stat_solves, self.stat_streak, self.stat_completion, self.stat_total):
 			stats.addWidget(w, 1)
 
 		# ---- Missions header + filter pills ----
@@ -202,26 +203,14 @@ class ProgressView(QWidget):
 		labs = self.state.labs()
 		progress = self.state.progress_map() if hasattr(self.state, "progress_map") else get_progress_map()
 
-		solved_count = 0
-		total_attempts = 0
-		total_xp = 0
+		total = len(labs)
+		solved_count = _solved_count(labs, progress)
+		total_xp = _total_xp(labs, progress)
+		streak = _solve_streak_days(progress)
+		completion = _completion_percent(total, solved_count)
 
-		for lab in labs:
-			lab_id = str(getattr(lab, "id", ""))
-			p = progress.get(lab_id, {})
-			attempts = int(p.get("attempts") or 0)
-			total_attempts += attempts
+		rank_name, rank_floor, next_name, next_floor = rank_for_xp(total_xp)
 
-			if p.get("solved_at"):
-				solved_count += 1
-				base = base_xp_for_difficulty(getattr(lab, "difficulty", "") or "")
-				total_xp += base + _attempt_bonus(attempts)
-
-		winrate = 0.0
-		if total_attempts > 0:
-			winrate = (solved_count / max(1, total_attempts)) * 100.0
-
-		rank_name, rank_floor, next_name, next_floor = _rank_for_xp(total_xp)
 		self.rank_name.setText(rank_name)
 		self.rank_sub.setText(f"{total_xp} XP")
 		self.rank_icon.setPixmap(_emblem(rank_name.split()[0][0], 54))
@@ -237,9 +226,9 @@ class ProgressView(QWidget):
 			self.rank_next.setText("Max rank reached.")
 
 		self.stat_solves._value_label.setText(str(solved_count))
-		self.stat_xp._value_label.setText(str(total_xp))
-		self.stat_attempts._value_label.setText(str(total_attempts))
-		self.stat_winrate._value_label.setText(f"{winrate:.0f}%")
+		self.stat_streak._value_label.setText(str(streak))
+		self.stat_completion._value_label.setText(f"{completion}%")
+		self.stat_total._value_label.setText(str(total))
 
 		rows = []
 		running_id = self._running_lab_id()
@@ -265,7 +254,7 @@ class ProgressView(QWidget):
 
 			solved_key = p.get("solved_at") or ""
 			started_key = p.get("started_at") or ""
-			rows.append((solved_key, started_key, int(p.get("attempts") or 0), lab, p))
+			rows.append((solved_key, started_key, lab, p))
 
 		rows.sort(key=lambda t: (t[0] or "", t[1] or ""), reverse=True)
 
@@ -281,7 +270,7 @@ class ProgressView(QWidget):
 
 		self.empty_state.setVisible(False)
 
-		for _solved_at, _started_at, _att, lab, p in rows:
+		for _solved_at, _started_at, lab, p in rows:
 			lab_id = str(getattr(lab, "id", ""))
 			is_running = (running_id and lab_id == running_id)
 			self.list_layout.insertWidget(
@@ -362,12 +351,11 @@ class ProgressView(QWidget):
 		diff = _norm_diff(getattr(lab, "difficulty", "") or "")
 		base_xp = base_xp_for_difficulty(diff)
 
-		attempts = int(p.get("attempts") or 0)
 		solved = bool(p.get("solved_at"))
 
 		earned = 0
 		if solved:
-			earned = base_xp + _attempt_bonus(attempts)
+			earned = base_xp
 
 		status = "UNSOLVED"
 		if solved:
@@ -452,7 +440,9 @@ class ProgressView(QWidget):
 			meta.append(f"Started {_fmt_dt(p.get('started_at') or '')}")
 		if p.get("solved_at"):
 			meta.append(f"Solved {_fmt_dt(p.get('solved_at') or '')}")
-		meta.append(f"Attempts {attempts}")
+		
+		if solved:
+			meta.append(f"Earned {earned} XP")
 		meta_lbl = QLabel("  •  ".join(meta))
 		meta_lbl.setObjectName("QuestMeta")
 		mid.addWidget(meta_lbl)
@@ -485,48 +475,6 @@ def _fmt_dt(s: str) -> str:
 
 def _norm_diff(s: str) -> str:
 	return (s or "").strip().upper()
-
-
-DIFF_XP = {}
-
-
-def _attempt_bonus(attempts: int) -> int:
-	if attempts <= 1:
-		return 50
-	if attempts <= 3:
-		return 25
-	return 0
-
-
-RANKS: List[Tuple[str, int]] = [
-	("Bronze I", 0),
-	("Bronze II", 300),
-	("Bronze III", 700),
-	("Silver I", 1200),
-	("Silver II", 2000),
-	("Silver III", 3000),
-	("Gold I", 4500),
-	("Gold II", 6500),
-	("Gold III", 9000),
-	("Platinum", 12000),
-	("Diamond", 16000),
-	("Master", 21000),
-]
-
-
-def _rank_for_xp(xp: int) -> Tuple[str, int, Optional[str], Optional[int]]:
-	cur_name, cur_floor = RANKS[0]
-	next_name, next_floor = None, None
-	for i, (name, floor) in enumerate(RANKS):
-		if xp >= floor:
-			cur_name, cur_floor = name, floor
-			if i + 1 < len(RANKS):
-				next_name, next_floor = RANKS[i + 1]
-			else:
-				next_name, next_floor = None, None
-		else:
-			break
-	return cur_name, cur_floor, next_name, next_floor
 
 
 class _XPBar(QFrame):
