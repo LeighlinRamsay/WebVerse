@@ -24,7 +24,7 @@ def run():
 		# last_seen on startup + periodic heartbeat while running
 		send_app_seen()
 		_hb = QTimer()
-		_hb.setInterval(60_000)  # 60s
+		_hb.setInterval(300_000)  # 5min
 		_hb.timeout.connect(send_app_seen)
 		_hb.start()
 

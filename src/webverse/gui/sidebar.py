@@ -61,10 +61,16 @@ class Sidebar(QFrame):
         # index is the STACK index (not the button index)
         self.stack.setCurrentIndex(index)
 
-        # active state is based on "context"
-        # Home -> 0, Browse Labs -> 1 or 2 (detail), Progress -> 3, Settings -> 4
-        active_btn = 0
-        if index in (1, 2):
+        # Active state is based on "context"
+        # Home -> 0
+        # Browse Labs list -> 1
+        # Lab detail -> 2 (NO sidebar selection)
+        # Progress -> 3
+        # Settings -> 4
+        active_btn = None
+        if index == 0:
+            active_btn = 0
+        elif index == 1:
             active_btn = 1
         elif index == 3:
             active_btn = 2
@@ -72,7 +78,7 @@ class Sidebar(QFrame):
             active_btn = 3
 
         for i, btn in enumerate(self.buttons):
-            btn.set_active(i == active_btn)
+            btn.set_active(active_btn is not None and i == active_btn)
 
     def set_docker_status(self, text: str, kind: str = "neutral"):
         palette = {

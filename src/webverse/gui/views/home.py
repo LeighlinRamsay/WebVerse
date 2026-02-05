@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
 	QFrame as QtQFrame, QStylePainter, QStyleOptionComboBox, QStyledItemDelegate, QStyleOptionViewItem
 )
 
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QPointF, QObject, QRectF, QRect, QSize
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QPointF, QObject, QRectF, QRect, QSize, QTimer
 from PyQt5.QtGui import QCursor, QPalette, QColor, QPainter, QPen, QLinearGradient, QPainterPath, QFont, QFontMetrics, QIcon, QRegion, QPixmap
 
 from webverse.gui.widgets.pill import Pill
@@ -529,6 +529,7 @@ class HomeView(QWidget):
 		# Keeps your hover tracking (_hoverRow) + selection behavior.
 		self.table.setItemDelegate(PillRowDelegate(self.table))
 
+		self.table.cellClicked.connect(self._on_row_clicked)
 		self.table.itemSelectionChanged.connect(self._on_select)
 		self.table.setCursor(QCursor(Qt.PointingHandCursor))
 
@@ -718,6 +719,31 @@ class HomeView(QWidget):
 		self.table.setCellWidget(row, 3, wrap)
 		it_name.setData(Qt.UserRole, lab.id)
 
+	def _on_row_clicked(self, row: int, col: int):
+		it = self.table.item(row, 0)
+		if not it:
+			return
+		lab_id = it.data(Qt.UserRole)
+		if lab_id:
+			self.request_select_lab.emit(str(lab_id))
+			self._clear_table_selection_soon()
+
+	def _clear_table_selection_soon(self):
+		# Defer until after Qt finishes processing the click/selection event.
+		def _do():
+			try:
+				self.table.blockSignals(True)
+				self.table.clearSelection()
+				self.table.setCurrentItem(None)
+			except Exception:
+				pass
+			finally:
+				try:
+					self.table.blockSignals(False)
+				except Exception:
+					pass
+		QTimer.singleShot(0, _do)
+
 	def _on_select(self):
 		row = self.table.currentRow()
 		if row < 0:
@@ -729,6 +755,8 @@ class HomeView(QWidget):
 		lab_id = it.data(Qt.UserRole)
 		if lab_id:
 			self.request_select_lab.emit(str(lab_id))
+			# Ensure when you return to Home, nothing is left "selected".
+			self._clear_table_selection_soon()
 
 	def _defocus_inputs(self):
 		# Drop focus highlight

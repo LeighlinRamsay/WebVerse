@@ -15,6 +15,10 @@ API_URL = os.getenv("WEBVERSE_TELEMETRY_URL", "https://api-opensource.webversela
 TIMEOUT = float(os.getenv("WEBVERSE_TELEMETRY_TIMEOUT", "6") or 6)
 DEBUG = (os.getenv("WEBVERSE_TELEMETRY_DEBUG", "").strip().lower() in {"1", "true", "yes", "on"})
 
+# app_seen throttling
+APP_SEEN_MIN_INTERVAL_S = int(os.getenv("WEBVERSE_APP_SEEN_MIN_INTERVAL_S", "600"))  # 10 min default
+APP_SEEN_RETRY_AFTER_FAIL_S = int(os.getenv("WEBVERSE_APP_SEEN_RETRY_AFTER_FAIL_S", "120"))  # 2 min
+
 
 def _log(msg: str) -> None:
     if not DEBUG:
