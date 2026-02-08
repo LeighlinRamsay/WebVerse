@@ -15,13 +15,13 @@ curl https://raw.githubusercontent.com/LeighlinRamsay/WebVerse/refs/heads/main/i
 
 ## Screenshot / Demo]
 
-<img width="1916" height="885" alt="HOME UPDATED" src="https://github.com/user-attachments/assets/9191393e-de4c-4d87-8945-04d4d05ec87d" />
+<img width="1911" height="887" alt="HOME PAGE NEW" src="https://github.com/user-attachments/assets/49002836-10ca-43ba-983c-1502bd84536c" />
 
-<img width="1911" height="882" alt="PIXEL" src="https://github.com/user-attachments/assets/5ea6d593-030f-4342-af0f-d707f0c4352c" />
+<img width="1907" height="891" alt="PIXEL PIVOT PAGE NEW" src="https://github.com/user-attachments/assets/aac378e8-b0b0-461a-b263-78d3492f7599" />
 
-<img width="1916" height="890" alt="BROWSE LABS UPDATED" src="https://github.com/user-attachments/assets/cb82b786-01e4-4eee-95b0-1a7f928507c8" />
+<img width="1902" height="872" alt="BROWSE LABS PAGE NEW" src="https://github.com/user-attachments/assets/9e48563b-ad83-4ca3-897c-46357861dcf5" />
 
-<img width="1910" height="896" alt="PROGRESS UPDATED" src="https://github.com/user-attachments/assets/f030ac78-1135-49d3-969d-6dc6ddf624b4" />
+<img width="1905" height="888" alt="webverse profile page" src="https://github.com/user-attachments/assets/c641734e-4b63-4c7a-8cad-a7c0e4f04948" />
 
 ---
 
