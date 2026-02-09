@@ -42,4 +42,6 @@ webverse = [
     "gui/**/*.png",
     "gui/**/*.svg",
     "gui/**/*.ico",
+    "gui/sounds/**",
+    "gui/**/*.wav",
 ]

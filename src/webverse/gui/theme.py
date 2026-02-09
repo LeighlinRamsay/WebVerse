@@ -1513,6 +1513,52 @@ def qss_onyx_amber(scale: float = DEFAULT_UI_SCALE) -> str:
 		color: rgba(91, 164, 255, 0.95);
 	}}
 
+	/* =========================
+	   Lab solved celebration
+	   ========================= */
+	#SolveOverlay {{
+		background: rgba(0, 0, 0, 0.72);
+	}}
+	#SolveCard {{
+		background: rgba(14, 14, 16, 0.96);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		border-radius: 22px;
+	}}
+	#SolveTitle {{
+		color: rgba(255, 255, 255, 0.96);
+		font-size: {h1}px;
+		font-weight: 900;
+		letter-spacing: 3px;
+	}}
+	#SolveSubtitle {{
+		color: rgba(255, 255, 255, 0.88);
+		font-size: {h2}px;
+		font-weight: 800;
+	}}
+	#SolveMeta {{
+		color: rgba(255, 255, 255, 0.74);
+		font-size: {small}px;
+		font-weight: 800;
+	}}
+	#SolveCover {{
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.10);
+		border-radius: 14px;
+		padding: 8px;
+	}}
+	#SolveContinue {{
+		background: rgba(255, 196, 62, 0.18);
+		border: 1px solid rgba(255, 196, 62, 0.40);
+		color: rgba(255, 255, 255, 0.92);
+		padding: 10px 18px;
+		border-radius: 12px;
+		font-weight: 900;
+	}}
+	#SolveContinue:hover {{
+		background: rgba(255, 196, 62, 0.26);
+		border: 1px solid rgba(255, 196, 62, 0.52);
+	}}
+
 	/* Dialog panels */
 	QFrame#Panel {{
 		background: rgba(255,255,255,0.04);

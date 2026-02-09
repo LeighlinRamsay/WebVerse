@@ -297,7 +297,7 @@ class AppState(QObject):
 		submitted = (flag or "").strip()
 
 		if not submitted:
-			return (False, "Empty flag.")
+			return (False, "Empty flag.", {})
 
 		# Engagement: treat as started when user attempts a flag
 		self.mark_started(lab_id)
@@ -310,7 +310,7 @@ class AppState(QObject):
 			prev_solved = 0
 
 		# Server-side validation + solve materialization (only source of truth)
-		ok, err = progress_db.submit_flag(lab_id, submitted)
+		ok, err, meta = progress_db.submit_flag(lab_id, submitted)
 		if ok:
 			# Force-refresh player stats so rank/XP updates everywhere.
 			self._refresh_player_stats_async(expect_solved_increment=True, prev_labs_solved=prev_solved)
@@ -323,9 +323,9 @@ class AppState(QObject):
 			if self._selected and str(self._selected.id) == lab_id:
 				self.selected_changed.emit(self._selected)
 
-			return (True, "")
+			return (True, "", meta)
 
-		return (False, err or "Invalid flag.")
+		return (False, err or "Invalid flag.", meta or {})
 
 	def check_flag(self, lab_id: str, flag: str):
 		return self.submit_flag(lab_id, flag)

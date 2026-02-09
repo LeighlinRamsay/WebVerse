@@ -217,9 +217,14 @@ class _EntrypointLabel(QLabel):
 		self._press_pos: Optional[QPoint] = None
 		self._pressed_on_text: bool = False
 
-		# Keep your existing behavior (selectable text) if you want.
+		"""# Keep your existing behavior (selectable text) if you want.
 		# We prevent accidental copy by requiring click-without-drag.
-		self.setTextInteractionFlags(Qt.TextSelectableByMouse)
+		self.setTextInteractionFlags(Qt.TextSelectableByMouse)"""
+
+		# Prevent Qt text selection highlight (the yellow box) when clicking
+		# while keeping click-to-copy behavior via our mouse handlers.
+		self.setTextInteractionFlags(Qt.NoTextInteraction)
+		self.setCursor(Qt.PointingHandCursor)
 
 	def _text_rect(self) -> QRect:
 		"""
@@ -338,7 +343,7 @@ class _ConnBar(QFrame):
 		self.value = _EntrypointLabel()
 		self.value.setObjectName("ConnValue")
 		self.value.setFocusPolicy(Qt.NoFocus)
-		self.value.setTextInteractionFlags(Qt.TextSelectableByMouse)
+		#self.value.setTextInteractionFlags(Qt.TextSelectableByMouse)
 		self.value.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
  
 
@@ -1885,6 +1890,7 @@ class LabDetailView(QWidget):
 
 		ok = False
 		msg = ""
+		meta = {}
 
 		# Try to use whatever the app already exposes, without hard-coupling.
 		try:
@@ -1893,6 +1899,11 @@ class LabDetailView(QWidget):
 				if isinstance(res, tuple) and len(res) >= 1:
 					ok = bool(res[0])
 					msg = str(res[1]) if len(res) > 1 and res[1] is not None else ""
+					try:
+						if len(res) > 2 and isinstance(res[2], dict):
+							meta = dict(res[2])
+					except Exception:
+						meta = {}
 				else:
 					ok = bool(res)
 
@@ -1938,6 +1949,22 @@ class LabDetailView(QWidget):
 			self._update_flag_lock(True)
 
 			self._toast("Success", "Flag accepted.", variant="success", ms=1600)
+
+			# Dopamine loop: fullscreen SOLVED overlay (sound + confetti)
+			try:
+				xp_awarded = None
+				try:
+					if isinstance(meta, dict) and meta.get("xp_awarded") is not None:
+						xp_awarded = int(meta.get("xp_awarded"))
+				except Exception:
+					xp_awarded = None
+
+				w = self.window()
+				if w is not None and hasattr(w, "solve_host"):
+					w.solve_host.show_solved(lab, xp_awarded=xp_awarded)
+			except Exception:
+				pass
+
 		else:
 			self.flag_feedback.setText("❌ Incorrect flag." + (f" ({msg})" if msg else ""))
 			self._append_activity("❌ Incorrect flag submitted.")

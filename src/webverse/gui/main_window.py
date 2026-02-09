@@ -23,6 +23,7 @@ from webverse.gui.views.lab_detail import LabDetailView
 from webverse.gui.views.progress import ProgressView
 from webverse.gui.views.settings import SettingsView
 from webverse.gui.views.profile import ProfileView
+from webverse.gui.widgets.solve_celebration import SolveCelebrationHost
 
 
 class MainWindow(QMainWindow):
@@ -142,6 +143,10 @@ class MainWindow(QMainWindow):
 		# Global toast host overlay (after QSS)
 		self.toast_host = ToastHost(self)
 		self.toast_host.raise_()
+
+		# Lab SOLVED celebration overlay
+		self.solve_host = SolveCelebrationHost(self)
+		self.solve_host.raise_()
 
 		self._pending_update = None
 		self.updater = UpdateManager(owner="LeighlinRamsay", repo="WebVerse", parent=self)

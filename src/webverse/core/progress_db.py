@@ -534,17 +534,18 @@ def mark_solved(lab_id: str, difficulty: str | None = None):
 	except Exception:
 		pass
 
-def submit_flag(lab_id: str, flag: str) -> Tuple[bool, str]:
+def submit_flag(lab_id: str, flag: str) -> Tuple[bool, str, Dict[str, Any]]:
 	"""
 	Server-side solve flow.
-	Returns (ok, error_message).
+	Returns (ok, error_message, meta).
+	meta is best-effort and may include keys like: xp_awarded, newly_solved, difficulty, lab_id.
 	"""
 	lab_id = str(lab_id or "").strip()
 	flag = str(flag or "").strip()
 	if not lab_id:
-		return (False, "Invalid lab_id.")
+		return (False, "Invalid lab_id.", {})
 	if not flag:
-		return (False, "Empty flag.")
+		return (False, "Empty flag.", {})
 
 	base = _api_base()
 	did = get_device_id()
@@ -559,10 +560,18 @@ def submit_flag(lab_id: str, flag: str) -> Tuple[bool, str]:
 	out = _safe_request_json("POST", f"{base}/v1/labs/submit-flag", payload, auth=False) or {}
 	if bool(out.get("ok") is True):
 		_invalidate(lab_id)
-		return (True, "")
+		meta: Dict[str, Any] = {}
+		try:
+			meta["lab_id"] = str(out.get("lab_id") or lab_id)
+			meta["difficulty"] = str(out.get("difficulty") or "")
+			meta["newly_solved"] = bool(out.get("newly_solved") is True)
+			meta["xp_awarded"] = int(out.get("xp_awarded") or 0)
+		except Exception:
+			meta = {}
+		return (True, "", meta)
 
 	msg = str(out.get("error") or out.get("detail") or "Invalid flag.")
-	return (False, msg)
+	return (False, msg, {})
 
 
 def _fetch_progress_blob(*, force: bool = False) -> Dict[str, Any]:
