@@ -1,0 +1,30 @@
+{% extends "_layout.html" %}
+{% block title %}Portal — Approval{% endblock %}
+
+{% block body %}
+  <div class="wrap page">
+    <div class="page-head">
+      <div>
+        <h1>Account review</h1>
+        <div class="sub">Internal approval flow for new member requests.</div>
+      </div>
+      <div class="cta" style="margin:0">
+        <a class="btn btn-ghost" href="/portal/login">Portal</a>
+        <a class="btn" href="http://{{ domain }}/">Main site</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-in">
+        {% if ok %}
+          <div class="alert ok">{{ detail }}</div>
+        {% else %}
+          <div class="alert bad">{{ detail }}</div>
+        {% endif %}
+        <div class="cta" style="margin-top:12px">
+          <a class="btn btn-primary" href="/portal/login">Continue</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

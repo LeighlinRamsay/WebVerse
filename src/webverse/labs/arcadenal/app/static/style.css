@@ -1,0 +1,62 @@
+:root{
+  --bg:#0b0e12;
+  --panel:#101621;
+  --muted:#7f8aa3;
+  --text:#e7ecf7;
+  --accent:#ffb000;
+  --danger:#ff4d6d;
+  --ok:#38b000;
+  --border:rgba(255,255,255,0.08);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  background: radial-gradient(1200px 600px at 15% 10%, rgba(255,176,0,0.12), transparent 60%),
+              radial-gradient(1000px 600px at 80% 40%, rgba(56,176,0,0.08), transparent 60%),
+              var(--bg);
+  color:var(--text);
+}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:980px;margin:0 auto;padding:28px}
+.nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border:1px solid var(--border);
+  background:rgba(16,22,33,0.8);backdrop-filter: blur(10px);
+  border-radius:16px;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:0.4px}
+.brand .dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 20px rgba(255,176,0,0.55)}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:1.4fr 0.8fr;gap:18px;margin-top:18px}
+.card{
+  padding:18px;border:1px solid var(--border);border-radius:18px;
+  background:rgba(16,22,33,0.7);backdrop-filter: blur(10px);
+}
+h1{margin:0 0 10px 0;font-size:38px}
+h2{margin:0 0 10px 0;font-size:22px}
+p{margin:10px 0;color:rgba(231,236,247,0.88);line-height:1.55}
+.muted{color:var(--muted)}
+.code{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  padding:10px 12px;border:1px dashed var(--border);border-radius:12px;color:#c7d2fe;
+  background:rgba(0,0,0,0.25);overflow:auto
+}
+form{display:grid;gap:10px}
+input{
+  width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--border);
+  background:rgba(0,0,0,0.25);color:var(--text);outline:none
+}
+button{
+  padding:11px 12px;border-radius:12px;border:1px solid rgba(255,176,0,0.35);
+  background:rgba(255,176,0,0.14);color:var(--text);font-weight:700;cursor:pointer
+}
+button:hover{background:rgba(255,176,0,0.2)}
+.alert{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,0.25)}
+.alert.ok{border-color:rgba(56,176,0,0.35)}
+.alert.err{border-color:rgba(255,77,109,0.35)}
+table{width:100%;border-collapse:collapse}
+td,th{padding:10px;border-bottom:1px solid var(--border);text-align:left}
+.small{font-size:12px}

@@ -1,0 +1,102 @@
+{% extends "_layout.html" %}
+{% block title %}Arcadenal — Neon Arcade & Esports Lounge{% endblock %}
+
+{% block body %}
+  <div class="wrap hero">
+    <div class="hero-grid">
+      <div class="card glass">
+        <div class="card-in">
+          <div class="kicker">
+            <span class="tag"><span class="dot dot-hot"></span> Arcade</span>
+            <span class="tag"><span class="dot dot-ice"></span> Esports</span>
+            <span class="tag"><span class="dot dot-lime"></span> Events</span>
+          </div>
+          <div class="h1">Retro energy.<br/>Modern competition.</div>
+          <p class="lead">
+            Arcadenal is a neon-first arcade lounge with curated cabinets, rhythm stations,
+            and weekend brackets. Earn a pass, book a room, and track your stats across the floor.
+          </p>
+
+          <div class="cta">
+            <a class="btn btn-primary" href="http://portal.{{ domain }}/portal/register">Get an Arcade Pass</a>
+            <a class="btn btn-ghost" href="http://portal.{{ domain }}/portal/login">Sign in</a>
+            <a class="btn" href="http://blog.{{ domain }}/">What’s new</a>
+          </div>
+
+          <div class="statrow">
+            <div class="stat">
+              <b>Downtown floor</b>
+              <small>Open daily • 11:00–01:00</small>
+            </div>
+            <div class="stat">
+              <b>Private rooms</b>
+              <small>4–12 people • bookable</small>
+            </div>
+            <div class="stat">
+              <b>Weekend brackets</b>
+              <small>Rhythm • Fighters • Retro</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="card">
+          <div class="card-in ticker">
+            <div class="tick"><i></i><div><b>Tonight: Neon Rush (fighters)</b><span>Check-in opens 7:30 PM</span></div></div>
+            <div class="tick"><i style="background: var(--ice); box-shadow: 0 0 0 4px rgba(34,230,255,.12), 0 0 30px rgba(34,230,255,.18)"></i><div><b>New cabinets on floor</b><span>2 rhythm stations • 1 classic racer</span></div></div>
+            <div class="tick"><i style="background: var(--lime); box-shadow: 0 0 0 4px rgba(125,255,106,.12), 0 0 30px rgba(125,255,106,.16)"></i><div><b>Pass perks updated</b><span>Priority queue  room credits</span></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-in">
+            <div class="kicker"><strong>Member Portal</strong> <span>passes • bookings • receipts</span></div>
+            <p class="lead" style="font-size:13px; margin-top:8px">
+              Keep your details in one place and access member-only drops.
+            </p>
+            <div class="cta" style="margin-top:12px">
+              <a class="btn btn-primary" href="http://portal.{{ domain }}/portal/login">Open Portal</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap section">
+    <div class="sec-head">
+      <div>
+        <h2>Built for the floor</h2>
+        <p>Everything you’d expect from a modern arcade business — without the noise.</p>
+      </div>
+      <p>Fast check-in • clean receipts • one portal</p>
+    </div>
+
+    <div class="tiles">
+      <div class="tile">
+        <h3>Arcade Pass</h3>
+        <p>Monthly access, member perks, and priority queue on bracket nights.</p>
+        <div class="tagrow">
+          <span class="tag"><span class="dot dot-lime"></span> perks</span>
+          <span class="tag"><span class="dot dot-ice"></span> stats</span>
+        </div>
+      </div>
+      <div class="tile">
+        <h3>Private Rooms</h3>
+        <p>Book a room for parties, team nights, or “just one more set” marathons.</p>
+        <div class="tagrow">
+          <span class="tag"><span class="dot dot-hot"></span> events</span>
+          <span class="tag"><span class="dot dot-warn"></span> bookings</span>
+        </div>
+      </div>
+      <div class="tile">
+        <h3>Scoreboard API</h3>
+        <p>Integrate stats into your own overlays and tools (dev access required).</p>
+        <div class="tagrow">
+          <span class="tag"><span class="dot dot-ice"></span> REST</span>
+          <span class="tag"><span class="dot dot-hot"></span> keys</span>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

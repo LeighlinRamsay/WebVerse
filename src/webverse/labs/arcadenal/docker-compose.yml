@@ -1,0 +1,20 @@
+services:
+  web:
+    build: ./app
+    container_name: arcadenal_web
+    environment:
+      LAB_DOMAIN: "arcadenal.local"
+      FLAG: "WEBVERSE{approval_tokens_are_quarters}"
+      DB_PATH: "/data/arcadenal_db.json"
+    extra_hosts:
+      arcadenal.local: "127.0.0.1"
+      portal.arcadenal.local: "127.0.0.1"
+      api.arcadenal.local: "127.0.0.1"
+      blog.arcadenal.local: "127.0.0.1"
+    ports:
+      - "80:80"
+    volumes:
+      - arcadenal_data:/data
+
+volumes:
+  arcadenal_data:

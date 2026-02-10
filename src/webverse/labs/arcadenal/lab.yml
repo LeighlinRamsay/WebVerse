@@ -1,0 +1,14 @@
+id: arcadenal
+name: Arcadenal
+difficulty: medium
+description: |
+  A retro arcade startup bolted "approval tokens" onto their onboarding flow... and left a debug search endpoint exposed.
+  Grab a backup, weaponize a NoSQL-style query, steal the approval token, and cash in admin access.
+story: |
+  Arcadenal is a nostalgia-driven arcade startup. To prevent "cheaters" from signing up, they added manual approvals.
+  One small problem: their dev tooling and backups are still hanging around in production.
+compose_file: docker-compose.yml
+image: cover.png
+entrypoint:
+  base_url: http://arcadenal.local/
+flag_sha256: 96c96e1a8b901dc04158eec01a2f895b7316de305a4c9384fe4456892f157375

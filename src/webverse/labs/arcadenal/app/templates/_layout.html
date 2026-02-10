@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#070711" />
+    <title>{% block title %}Arcadenal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='arcadenal.css') }}" />
+    <script defer src="{{ url_for('static', filename='arcadenal.js') }}"></script>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="wrap topbar-inner">
+        <a class="brand" href="http://{{ domain }}/">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div class="brand-title">
+            <strong>ARCADENAL</strong>
+            <span>Neon arcade & esports lounge</span>
+          </div>
+        </a>
+
+        <nav class="nav" aria-label="Primary">
+          <a href="http://{{ domain }}/">Home</a>
+          <a href="http://blog.{{ domain }}/">Blog</a>
+          <a href="http://portal.{{ domain }}/portal/login">Member Portal</a>
+          <span class="pill" title="Live floor status">
+            <span class="pill-dot" aria-hidden="true"></span>
+            Open Now
+          </span>
+        </nav>
+      </div>
+    </div>
+
+    {% block body %}{% endblock %}
+
+    <footer class="footer">
+      <div class="wrap footgrid">
+        <div>
+          <b>Arcadenal</b><br/>
+          Downtown neon • Tournaments every weekend • Private event rooms
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

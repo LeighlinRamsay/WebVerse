@@ -1,0 +1,50 @@
+{% extends "_layout.html" %}
+{% block title %}Member Portal — Join{% endblock %}
+
+{% block body %}
+  <div class="wrap page">
+    <div class="page-head">
+      <div>
+        <h1>Join Arcadenal</h1>
+        <div class="sub">Create an account to request an arcade pass.</div>
+      </div>
+      <div class="cta" style="margin:0">
+        <a class="btn btn-ghost" href="/portal/login">Back to sign in</a>
+        <a class="btn" href="http://{{ domain }}/">Main site</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-in">
+        {% if err %}
+          <div class="alert bad">{{ err }}</div>
+        {% endif %}
+        {% if msg %}
+          <div class="alert ok">{{ msg }}</div>
+        {% endif %}
+
+        <form class="form" method="POST" action="/portal/register">
+          <div class="field">
+            <label>Username</label>
+            <input name="username" autocomplete="username" placeholder="your-handle" />
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input name="email" autocomplete="email" placeholder="you@domain.com" />
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input name="password" type="password" autocomplete="new-password" placeholder="Create a password" />
+          </div>
+          <div class="alert" style="margin-top:6px">
+            New accounts are reviewed to reduce abuse on bracket nights. Approval typically takes under a day.
+          </div>
+          <div class="cta" style="margin-top:10px">
+            <button class="btn btn-primary" type="submit">Request Pass</button>
+            <a class="btn btn-ghost" href="/portal/login">I already have an account</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "_layout.html" %}
+{% block title %}{{ post.title }} — Arcadenal{% endblock %}
+
+{% block body %}
+  <div class="wrap page">
+    <div class="page-head">
+      <div>
+        <h1>{{ post.title }}</h1>
+        <div class="sub">by {{ post.author }} • {% if post.tags %}{{ post.tags | join(", ") }}{% else %}updates{% endif %}</div>
+      </div>
+      <div class="cta" style="margin:0">
+        <a class="btn btn-ghost" href="http://blog.{{ domain }}/">All posts</a>
+        <a class="btn btn-primary" href="http://portal.{{ domain }}/portal/login">Portal</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="muted">Arcadenal floor notes</div>
+      <div class="body">{{ post.body }}</div>
+    </div>
+  </div>
+{% endblock %}

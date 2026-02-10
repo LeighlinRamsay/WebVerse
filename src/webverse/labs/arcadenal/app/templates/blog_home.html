@@ -1,0 +1,30 @@
+{% extends "_layout.html" %}
+{% block title %}Arcadenal Blog{% endblock %}
+
+{% block body %}
+  <div class="wrap page">
+    <div class="page-head">
+      <div>
+        <h1>News & floor updates</h1>
+        <div class="sub">Announcements, bracket recaps, and ops notes.</div>
+      </div>
+      <div class="cta" style="margin:0">
+        <a class="btn btn-ghost" href="http://{{ domain }}/">Back to site</a>
+        <a class="btn btn-primary" href="http://portal.{{ domain }}/portal/register">Get a Pass</a>
+      </div>
+    </div>
+
+    <div class="list">
+      {% for p in posts %}
+        <div class="post" data-href="http://blog.{{ domain }}/post/{{ p.id }}">
+          <h3>{{ p.title }}</h3>
+          <div class="meta">
+            by {{ p.author }} •
+            {% if p.tags %}{{ p.tags | join(", ") }}{% else %}updates{% endif %}
+          </div>
+          <p class="excerpt">{{ p.body }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

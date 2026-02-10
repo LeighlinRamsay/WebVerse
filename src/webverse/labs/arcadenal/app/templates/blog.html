@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Arcadenal Blog</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <div class="wrap">
+    <div class="nav">
+      <div class="brand"><span class="dot"></span> Arcadenal Blog</div>
+      <div class="pill"><a href="http://{{ domain }}/">main site</a></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h1>Dev Notes &amp; Retro Rants</h1>
+        <p class="muted">Powered by the content team's internal preview tools.</p>
+
+        <h2 style="margin-top:16px">Search posts</h2>
+        <p class="muted small">Tip: try searching for <span class="code">retro</span> or <span class="code">approvals</span>.</p>
+
+        <form id="searchForm">
+          <input id="query" placeholder='JSON query (example: {"title":{"$regex":"retro"}})'/>
+          <button type="submit">Search</button>
+        </form>
+
+        <div id="out" class="code" style="margin-top:12px;min-height:160px;white-space:pre-wrap"></div>
+      </div>
+
+      <div class="card">
+        <h2>About</h2>
+        <p class="muted">
+          We keep a small internal API for quick previews. It’s not meant for the public internet,
+          but it’s convenient during launch week.
+        </p>
+        <div class="code small">GET /api/search?collection=posts&amp;q=...</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const out = document.getElementById("out");
+document.getElementById("searchForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const q = document.getElementById("query").value.trim();
+  const url = "/api/search?collection=posts&q=" + encodeURIComponent(q);
+  const r = await fetch(url);
+  const j = await r.json();
+  out.textContent = JSON.stringify(j, null, 2);
+});
+</script>
+</body>
+</html>

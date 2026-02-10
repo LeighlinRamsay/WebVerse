@@ -1,0 +1,61 @@
+{% extends "_layout.html" %}
+{% block title %}Portal — Dashboard{% endblock %}
+
+{% block body %}
+  <div class="wrap page">
+    <div class="page-head">
+      <div>
+        <h1>Welcome, {{ user.username }}</h1>
+        <div class="sub">Manage your membership, receipts, and admin tools (if enabled).</div>
+      </div>
+      <div class="cta" style="margin:0">
+        <a class="btn btn-ghost" href="http://blog.{{ domain }}/">Blog</a>
+        <a class="btn" href="http://{{ domain }}/">Main site</a>
+        <a class="btn btn-primary" href="/portal/logout">Sign out</a>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile">
+        <h3>Membership</h3>
+        <p>Account email: <span style="color: rgba(255,255,255,.86)">{{ user.email }}</span></p>
+        <div class="tagrow">
+          <span class="tag"><span class="dot dot-ice"></span> status: active</span>
+          <span class="tag"><span class="dot dot-lime"></span> tier: standard</span>
+        </div>
+      </div>
+
+      <div class="tile">
+        <h3>Receipts</h3>
+        <p>Receipts and bookings will appear here once your first session is completed.</p>
+        <div class="tagrow">
+          <span class="tag"><span class="dot dot-warn"></span> coming soon</span>
+        </div>
+      </div>
+
+      <div class="tile">
+        <h3>Floor Profile</h3>
+        <p>Bracket registration and cabinet stats are rolling out floor-by-floor.</p>
+        <div class="tagrow">
+          <span class="tag"><span class="dot dot-hot"></span> brackets</span>
+          <span class="tag"><span class="dot dot-ice"></span> stats</span>
+        </div>
+      </div>
+    </div>
+
+    {% if is_admin %}
+      <div style="height:14px"></div>
+      <div class="card">
+        <div class="card-in">
+          <div class="kicker"><strong>Operations</strong> <span>restricted</span></div>
+          <p class="lead" style="font-size:13px; margin-top:8px">
+            Admin utilities for finance exports and internal housekeeping.
+          </p>
+          <div class="cta">
+            <a class="btn btn-primary" href="/portal/admin/download/tax-form">Download finance export</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

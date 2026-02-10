@@ -1,0 +1,41 @@
+{% extends "_layout.html" %}
+{% block title %}Member Portal — Sign in{% endblock %}
+
+{% block body %}
+  <div class="wrap page">
+    <div class="page-head">
+      <div>
+        <h1>Member Portal</h1>
+        <div class="sub">Sign in to manage your pass and view your account.</div>
+      </div>
+      <div class="cta" style="margin:0">
+        <a class="btn btn-ghost" href="http://{{ domain }}/">Main site</a>
+        <a class="btn" href="http://blog.{{ domain }}/">Blog</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-in">
+        {% if error %}
+          <div class="alert bad">{{ error }}</div>
+        {% endif %}
+
+        <form class="form" method="POST" action="/portal/login">
+          <div class="field">
+            <label>Username</label>
+            <input name="username" autocomplete="username" placeholder="maria" />
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input name="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+          </div>
+
+          <div class="cta" style="margin-top:6px">
+            <button class="btn btn-primary" type="submit">Sign in</button>
+            <a class="btn btn-ghost" href="/portal/register">Create account</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

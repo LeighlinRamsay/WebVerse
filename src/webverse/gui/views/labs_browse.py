@@ -347,6 +347,28 @@ class LabsBrowseView(QWidget):
 
 		self._refresh()
 
+		# --- Live refresh when labs are added/removed/changed ---
+		# After remote install: AppState.refresh_labs() emits labs_changed,
+		# but this view must listen and rebuild its model.
+		try:
+			if hasattr(self.state, "labs_changed"):
+				self.state.labs_changed.connect(self._refresh)
+		except Exception:
+			pass
+
+		# Status badges/sorting depend on progress + running lab state too.
+		try:
+			if hasattr(self.state, "progress_changed"):
+				self.state.progress_changed.connect(self._refresh)
+		except Exception:
+			pass
+
+		try:
+			if hasattr(self.state, "running_changed"):
+				self.state.running_changed.connect(lambda _lab=None: self._refresh())
+		except Exception:
+			pass
+
 	def showEvent(self, event):
 		super().showEvent(event)
 		# force a relayout once geometry is real, so grid wraps nicely immediately
