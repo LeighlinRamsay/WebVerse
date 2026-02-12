@@ -629,33 +629,13 @@ class LabDetailView(QWidget):
 		outer.setContentsMargins(0, 0, 0, 0)
 		outer.setSpacing(12)
 
-		# Breadcrumbs + Back/Forward (visual only; MainWindow owns history)
+		# Breadcrumbs only (Back/Forward lives in the global TopBar)
 		self.breadcrumb_bar = QFrame()
 		self.breadcrumb_bar.setObjectName("BreadcrumbBar")
 		self.breadcrumb_bar.setAttribute(Qt.WA_StyledBackground, True)
 		bb = QHBoxLayout(self.breadcrumb_bar)
 		bb.setContentsMargins(14, 10, 14, 0)
 		bb.setSpacing(10)
-
-		self.btn_back = QToolButton()
-		self.btn_back.setObjectName("NavBtn")
-		self.btn_back.setIcon(self.style().standardIcon(QStyle.SP_ArrowBack))
-		self.btn_back.setCursor(Qt.PointingHandCursor)
-		self.btn_back.setToolTip("Back")
-		self.btn_back.setAutoRaise(True)
-		self.btn_back.setEnabled(False)
-		self.btn_back.clicked.connect(lambda: self.nav_back.emit())
-		bb.addWidget(self.btn_back, 0, Qt.AlignVCenter)
-
-		self.btn_forward = QToolButton()
-		self.btn_forward.setObjectName("NavBtn")
-		self.btn_forward.setIcon(self.style().standardIcon(QStyle.SP_ArrowForward))
-		self.btn_forward.setCursor(Qt.PointingHandCursor)
-		self.btn_forward.setToolTip("Forward")
-		self.btn_forward.setAutoRaise(True)
-		self.btn_forward.setEnabled(False)
-		self.btn_forward.clicked.connect(lambda: self.nav_forward.emit())
-		bb.addWidget(self.btn_forward, 0, Qt.AlignVCenter)
 
 		self.crumb_labs = QToolButton()
 		self.crumb_labs.setObjectName("CrumbLink")
@@ -1313,8 +1293,8 @@ class LabDetailView(QWidget):
 		mw._fallback_toast_host.show_toast(title, body, variant=variant, ms=ms)
 
 	def set_nav_enabled(self, back: bool, forward: bool) -> None:
-		self.btn_back.setEnabled(bool(back))
-		self.btn_forward.setEnabled(bool(forward))
+		# Nav buttons are in TopBar; keep for backward-compat.
+		return
 
 	def set_lab(self, lab):
 		self._lab = lab

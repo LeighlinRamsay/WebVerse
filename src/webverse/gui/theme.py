@@ -1349,14 +1349,17 @@ def qss_onyx_amber(scale: float = DEFAULT_UI_SCALE) -> str:
 		background: rgba(10,12,16,0.55);
 		border: 1px solid rgba(255,255,255,0.08);
 		border-radius: 16px;
+		min-height: { _s(34, scale) }px;
 	}}
 
 	QLabel#CrumbSep {{
-		color: rgba(235,241,255,0.45);
+		font-size: {base_font}px;
+		color: rgba(235,241,255,0.42);
 		font-weight: 800;
-		padding: 0px 2px;
+		padding: 0px 6px;
 	}}
 	QLabel#CrumbCurrent {{
+		font-size: {base_font}px;
 		color: rgba(245,247,255,0.92);
 		font-weight: 950;
 		letter-spacing: 0.2px;
@@ -1365,12 +1368,16 @@ def qss_onyx_amber(scale: float = DEFAULT_UI_SCALE) -> str:
 	QToolButton#CrumbBtn {{
 		background: transparent;
 		border: none;
-		color: rgba(245,197,66,0.92);
-		font-weight: 950;
-		padding: 6px 6px;
+		font-size: {base_font}px;              /* keep "Labs" same size as current crumb */
+		color: rgba(235,241,255,0.74);         /* lower emphasis via color, not size */
+		font-weight: 900;
+		padding: 0px 2px;
 	}}
 
-	QToolButton#CrumbBtn:hover {{ color: rgba(255,209,102,0.96); }}
+	QToolButton#CrumbBtn:hover {{
+		color: rgba(245,197,66,0.96);
+		text-decoration: underline;
+	}}
 
 	/* ---- Lab detail split & tabs (smoother, less "boxed") ---- */
 	QSplitter#DetailSplit::handle:horizontal {{

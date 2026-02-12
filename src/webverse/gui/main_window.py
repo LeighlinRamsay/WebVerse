@@ -175,9 +175,7 @@ class MainWindow(QMainWindow):
 		self.topbar.forward_requested.connect(self._go_forward)
 		self.topbar.search_requested.connect(self._open_palette)
 		self.topbar.running_requested.connect(self._open_running_lab)
-
-		self.lab_detail.nav_back.connect(self._go_back)
-		self.lab_detail.nav_forward.connect(self._go_forward)
+		
 		self.lab_detail.nav_to_labs.connect(lambda: self.navigate(1, push=True))
 
 		self.state.running_changed.connect(self._update_running_pill)
