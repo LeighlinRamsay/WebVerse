@@ -8,7 +8,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QModelIndex, QSize, QRect, QPoint, QPoi
 from PyQt5.QtGui import QColor, QFontMetrics, QPainter, QPen, QBrush, QPalette, QColor, QFont
 
 from PyQt5.QtWidgets import (
-	QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
+	QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QStackedWidget,
 	QLineEdit, QComboBox, QListView,
 	QStyledItemDelegate, QStyleOptionViewItem,
 	QSizePolicy, QProxyStyle, QStyle, QApplication, QFrame as QtQFrame,
@@ -343,7 +343,30 @@ class LabsBrowseView(QWidget):
 		self.grid.viewport().setAttribute(Qt.WA_Hover, True)
 
 		self.grid.clicked.connect(self._open_lab)
-		content.addWidget(self.grid, 1)
+		
+		# --- RESULTS / EMPTY STATE STACK ---
+		self._results_stack = QStackedWidget()
+		self._results_stack.setObjectName("LabsResultsStack")
+
+		self._empty_state = QFrame()
+		self._empty_state.setObjectName("LabsEmptyState")
+		el = QVBoxLayout(self._empty_state)
+		el.setContentsMargins(28, 28, 28, 28)
+		el.setSpacing(10)
+		el.addStretch(1)
+
+		self._empty_label = QLabel("No labs match your search filter")
+		self._empty_label.setObjectName("Muted")
+		self._empty_label.setAlignment(Qt.AlignCenter)
+		self._empty_label.setWordWrap(True)
+		el.addWidget(self._empty_label, 0, Qt.AlignCenter)
+		el.addStretch(1)
+
+		self._results_stack.addWidget(self.grid)         # index 0
+		self._results_stack.addWidget(self._empty_state) # index 1
+		self._results_stack.setCurrentWidget(self.grid)
+
+		content.addWidget(self._results_stack, 1)
 
 		self._refresh()
 
@@ -378,9 +401,22 @@ class LabsBrowseView(QWidget):
 		return super().eventFilter(obj, event)
 
 	def _running_lab_id(self) -> str:
+		# Prefer AppState's in-memory running lab (authoritative for this session).
+		try:
+			if hasattr(self.state, "running"):
+				lab = self.state.running()
+				if lab is not None:
+					rid = str(getattr(lab, "id", "") or "").strip()
+					if rid:
+						return rid
+		except Exception:
+			pass
+
+		# Fallback: persisted runtime.json (can be stale during startup/edge cases).
+
 		try:
 			rid = get_running_lab()
-			return str(rid) if rid else ""
+			return str(rid).strip() if rid else ""
 		except Exception:
 			return ""
 
@@ -394,18 +430,30 @@ class LabsBrowseView(QWidget):
 		labs = list(self._labs())
 		prog = self._progress()
 		q = (self.q.text() or "").strip().lower()
-		running_id = self._running_lab_id()
+		running_id = (self._running_lab_id() or "").strip()
+
+		def _flags(lab_id: str) -> tuple[bool, bool]:
+			"""
+			Return (is_running, is_solved).
+			NOTE: These are not mutually exclusive.
+			A lab can be both running and solved.
+			"""
+			lid = str(lab_id or "").strip()
+			p = (prog or {}).get(lid, {}) or {}
+			is_running = bool(running_id and lid == running_id)
+			is_solved = bool(p.get("solved_at"))
+			return (is_running, is_solved)
 
 		def status_of(lab_id: str) -> str:
-			p = prog.get(lab_id, {})
-			if p.get("solved_at"):
+			# Display label (single tag).
+			# Running takes priority visually, even if solved.
+			is_running, is_solved = _flags(lab_id)
+			if is_running:
+				return "Active"
+
+			if is_solved:
 				return "Solved"
 
-			if running_id and lab_id == running_id:
-				return "Active"
-
-			if p.get("started_at"):
-				return "Active"
 			return "Unsolved"
 
 		# filter: query
@@ -429,8 +477,12 @@ class LabsBrowseView(QWidget):
 		# filter: status
 		sidx = self.status.currentIndex()
 		if sidx != 0:
-			wanted = {1: "Solved", 2: "Active", 3: "Unsolved"}[sidx]
-			labs = [l for l in labs if status_of(str(getattr(l, "id", ""))) == wanted]
+			if sidx == 1:  # Status: Solved (include solved even if also running)
+				labs = [l for l in labs if _flags(str(getattr(l, "id", "")))[1]]
+			elif sidx == 2:  # Status: Active (running)
+				labs = [l for l in labs if _flags(str(getattr(l, "id", "")))[0]]
+			else:  # Status: Unsolved (exclude solved, running unsolved still counts)
+				labs = [l for l in labs if not _flags(str(getattr(l, "id", "")))[1]]
 
 		# sort
 		rank = {"easy": 0, "medium": 1, "hard": 2, "master": 3}
@@ -475,6 +527,19 @@ class LabsBrowseView(QWidget):
 			cards.append(_LabCard(lab_id=lab_id, name=name, slug=slug, difficulty=difficulty, status=status, xp=xp, image_path=img))
 
 		self._model.set_cards(cards)
+
+		# Empty-state UX: show a friendly message when nothing matches filters/search.
+		try:
+			if cards:
+				self._results_stack.setCurrentWidget(self.grid)
+			else:
+				self._results_stack.setCurrentWidget(self._empty_state)
+		except Exception:
+			# Fallback if stack isn't available for any reason
+			try:
+				self.grid.setVisible(bool(cards))
+			except Exception:
+				pass
 
 	def _open_lab(self, index: QModelIndex):
 		lab_id = index.data(_LabsGridModel.ROLE_LAB_ID)

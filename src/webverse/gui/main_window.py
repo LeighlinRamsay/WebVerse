@@ -23,7 +23,6 @@ from webverse.gui.views.labs_browse import LabsBrowseView
 from webverse.gui.views.learning import LearningView
 from webverse.gui.views.lab_detail import LabDetailView
 from webverse.gui.views.progress import ProgressView
-from webverse.gui.views.settings import SettingsView
 from webverse.gui.views.profile import ProfileView
 from webverse.gui.widgets.solve_celebration import SolveCelebrationHost
 
@@ -98,15 +97,13 @@ class MainWindow(QMainWindow):
 		self.profile = ProfileView(api_base_url=os.getenv("WEBVERSE_API_URL", "https://api-opensource.webverselabs.com/").rstrip("/"))
 		self.lab_detail = LabDetailView(state)
 		self.progress = ProgressView(state)
-		self.settings = SettingsView(state)
 
 		self.stack.addWidget(self.home)       # 0
 		self.stack.addWidget(self.browse)     # 1
 		self.stack.addWidget(self.learning)   # 2
 		self.stack.addWidget(self.lab_detail) # 3
 		self.stack.addWidget(self.progress)   # 4
-		self.stack.addWidget(self.settings)   # 5
-		self.stack.addWidget(self.profile) # 6 (new)
+		self.stack.addWidget(self.profile)    # 5
 
 		# Keep stack indexes centralized so future page inserts don't break navigation/history.
 		self.PAGE_HOME = 0
@@ -114,8 +111,7 @@ class MainWindow(QMainWindow):
 		self.PAGE_LEARNING = 2
 		self.PAGE_LAB_DETAIL = 3
 		self.PAGE_PROGRESS = 4
-		self.PAGE_SETTINGS = 5
-		self.PAGE_PROFILE = 6
+		self.PAGE_PROFILE = 5
 
 		# Learning view -> lab detail (support multiple signal names for compatibility)
 		try:
@@ -280,10 +276,6 @@ class MainWindow(QMainWindow):
 		except Exception:
 			pass
 
-		self.state.docker_changed.connect(lambda text, kind: self.sidebar.set_docker_status(text, kind))
-		text, kind = self.state.docker_status()
-		self.sidebar.set_docker_status(text, kind)
-
 		self.home.nav_labs.connect(lambda: self.navigate(self.PAGE_BROWSE, push=True))
 		self.home.request_select_lab.connect(self._select_and_open_lab)
 		self.browse.request_open_lab.connect(self._select_and_open_lab)
@@ -291,11 +283,7 @@ class MainWindow(QMainWindow):
 		self.stack.currentChanged.connect(self._on_stack_changed)
 
 		self.navigate(self.PAGE_HOME, push=True)
-
-		self.timer = QTimer(self)
-		self.timer.timeout.connect(self.state.refresh_docker)
-		self.timer.start(12000)
-
+		
 	def _on_auth_changed(self):
 		"""
 		Central auth-change handler (login/logout/account switch).
@@ -748,7 +736,6 @@ class MainWindow(QMainWindow):
 				self.PAGE_BROWSE,
 				self.PAGE_LAB_DETAIL,
 				self.PAGE_PROGRESS,
-				self.PAGE_SETTINGS,
 				self.PAGE_PROFILE,
 			):
 				self.show_toast("Login required", "Login to access locked pages", variant="warn", ms=2200)

@@ -64,7 +64,6 @@ class Sidebar(QFrame):
 			self._nav_items.append(("Learning", 2))
 		self._nav_items += [
 			("Progress", 4),
-			("Settings", 5),
 		]
 
 		self.buttons = []
@@ -237,7 +236,7 @@ class Sidebar(QFrame):
 			token = str(self._settings.value("auth/access_token", "") or "").strip()
 			return bool(token)
 		except Exception:
-			return Fals
+			return False
 
 	def _is_access_locked_for_index(self, stack_index: int) -> bool:
 		# Lock only applies if device is linked AND user is logged out.
@@ -247,33 +246,23 @@ class Sidebar(QFrame):
 			return False
 
 		# Pages to disable when linked-but-logged-out:
-		# - Browse (1), Lab Detail (2), Progress (3), Settings (4), Profile (profile_index)
-		# Keep Home/Browse/Settings accessible so they can still use the app + login.
-		restricted = {1, 2, 3, 4}
+		# - Browse (1), Lab Detail (3), Progress (4), Profile (profile_index)
+		# Learning (2) stays accessible; Home (0) stays accessible.
+		restricted = {1, 3, 4}
 		if self._profile_index is not None and self._profile_index >= 0:
 			restricted.add(int(self._profile_index))
 		return int(stack_index) in restricted
 
 	def _apply_access_lock(self) -> None:
-		locked = (self._device_is_linked() and (not self._is_logged_in()))
-
-		# Buttons correspond to: Home(0), Browse(1), Progress(3), Settings(4)
-		# Locked: disable Browse + Progress + Settings (Home stays enabled).
-		try:
-			# Home
-			self.buttons[0].setEnabled(True)
-			self.buttons[0].set_locked(False)
-			# Browse
-			self.buttons[1].setEnabled(not locked)
-			self.buttons[1].set_locked(locked)
-			# Progress
-			self.buttons[2].setEnabled(not locked)
-			self.buttons[2].set_locked(locked)
-			# Settings
-			self.buttons[3].setEnabled(not locked)
-			self.buttons[3].set_locked(locked)
-		except Exception:
-			pass
+		# Don’t assume a fixed number/order of buttons (Learning is optional).
+		for btn, (_label, stack_idx) in zip(self.buttons, self._nav_items):
+			try:
+				is_locked = self._is_access_locked_for_index(int(stack_idx))
+				btn.setEnabled(not is_locked)
+				btn.set_locked(is_locked)
+				btn.setToolTip("Locked — login required" if is_locked else "")
+			except Exception:
+				continue
 
 		# Profile badge itself should only be clickable when logged in.
 		try:
@@ -285,13 +274,8 @@ class Sidebar(QFrame):
 		except Exception:
 			pass
 
-		# Tooltips so it's obvious *why* they're disabled
-		tip = "Locked — login required" if locked else ""
 		try:
-			self.buttons[1].setToolTip(tip)
-			self.buttons[2].setToolTip(tip)
-			self.buttons[3].setToolTip(tip)
-			self.profile_badge.setToolTip(tip)
+			self.profile_badge.setToolTip("Locked — login required" if locked else "")
 		except Exception:
 			pass
 

@@ -1800,12 +1800,12 @@ class LabDetailView(QWidget):
 
 		if busy_id and str(busy_id) != str(lab.id) and str(busy_op) in ("starting", "resetting", "stopping"):
 			pretty = {"starting": "starting up", "resetting": "resetting", "stopping": "stopping"}.get(str(busy_op), str(busy_op))
-			self._toast("Please wait", f"Another lab is {pretty}. Finish that first before starting a new lab.", variant="warn", ms=2200)
+			self._toast("Please wait", f"Another lab is {pretty}. Finish that first before starting a new lab.", variant="warn", ms=3000)
 			return
 
 		if busy_id and str(busy_id) == str(lab.id) and str(busy_op) in ("starting", "resetting", "stopping"):
 			pretty = {"starting": "starting up", "resetting": "resetting", "stopping": "stopping"}.get(str(busy_op), str(busy_op))
-			self._toast("In progress", f"This lab is already {pretty}.", variant="info", ms=1800)
+			self._toast("In progress", f"This lab is already {pretty}.", variant="info", ms=3000)
 			return
 
 		# ✅ Prevent multiple labs running at once
@@ -1835,7 +1835,7 @@ class LabDetailView(QWidget):
 						"Port in use",
 						f"This lab needs host port(s) {plist}{more}, but they're already in use. Stop the service using them, then try again.",
 						variant="error",
-						ms=2800,
+						ms=3000,
 					)
 					self._append_activity(f"❌ Launch blocked: port(s) in use: {', '.join(str(p) for p in busy)}")
 					return

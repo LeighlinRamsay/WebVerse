@@ -1718,32 +1718,73 @@ def qss_onyx_amber(scale: float = DEFAULT_UI_SCALE) -> str:
 		font-weight: 850;
 		color: rgba(235,241,255,0.70);
 	}}
-	QPushButton#ProfileLogoutBtn {{
-		background: rgba(10,12,16,0.55);
-		border: 1px solid rgba(245,197,66,0.22);
-		border-radius: 999px;
-		padding: 7px 14px;
-		font-weight: 950;
-		letter-spacing: 0.2px;
-		color: rgba(235,241,255,0.90);
-		min-height: 34px;
-	}}
-	QPushButton#ProfileLogoutBtn:hover {{
-		background: rgba(16,20,28,0.70);
-		border: 1px solid rgba(245,197,66,0.42);
-		color: rgba(245,247,255,0.96);
+	
+	/* ---- Profile logout (CUSTOM widget: QFrame) ---- */
+	QFrame#ProfileLogoutBtn {{
+		/* Onyx base + subtle amber sheen (NO grey highlight) */
+		background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+			stop:0   rgba(212,175,55,0.10),
+			stop:0.22 rgba(12,14,18,0.96),
+			stop:1   rgba(6,8,10,0.94)
+		);
+
+		/* make the outline read as “amber”, not “UI grey” */
+		border: 1px solid rgba(212,175,55,0.30);
+		border-top: 1px solid rgba(255,220,120,0.18);   /* warm rim light */
+		border-radius: {r_md}px;
 	}}
 
-	QPushButton#ProfileLogoutBtn:pressed {{
-		background: rgba(8,10,13,0.80);
-		border: 1px solid rgba(245,197,66,0.34);
-		padding-top: 8px;
-		padding-bottom: 6px;
+	QFrame#ProfileLogoutBtn QLabel#ProfileLogoutBtnIcon {{
+		color: rgba(212,175,55,0.92);
+		font-weight: 950;
 	}}
-	QPushButton#ProfileLogoutBtn:disabled {{
-		background: rgba(255,255,255,0.02);
-		border: 1px solid rgba(255,255,255,0.06);
-		color: rgba(235,241,255,0.22);
+
+	QFrame#ProfileLogoutBtn QLabel#ProfileLogoutBtnText {{
+		/* force white (avoid being overridden by broader hero QLabel rules) */
+		color: rgba(255,255,255,0.96);
+		font-weight: 900;
+		letter-spacing: 0.2px;
+	}}
+
+	/* Hover/pressed driven by dynamic properties set in _LogoutButton */
+	QFrame#ProfileLogoutBtn[hover="true"] {{
+		background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+			stop:0   rgba(212,175,55,0.18),
+			stop:0.30 rgba(212,175,55,0.08),
+			stop:1   rgba(6,8,10,0.94)
+		);
+		border: 1px solid rgba(212,175,55,0.55);
+		border-top: 1px solid rgba(255,220,120,0.28);
+	}}
+	QFrame#ProfileLogoutBtn[hover="true"] QLabel#ProfileLogoutBtnIcon {{
+		color: rgba(255,222,140,0.98);
+	}}
+	QFrame#ProfileLogoutBtn[hover="true"] QLabel#ProfileLogoutBtnText {{
+		color: rgba(255,255,255,0.98);
+	}}
+
+	QFrame#ProfileLogoutBtn[pressed="true"] {{
+		background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+			stop:0   rgba(212,175,55,0.22),
+			stop:0.40 rgba(139,101,8,0.16),
+			stop:1   rgba(6,8,10,0.92)
+		);
+		border: 1px solid rgba(212,175,55,0.70);
+		border-top: 1px solid rgba(255,220,120,0.32);
+	}}
+	QFrame#ProfileLogoutBtn[pressed="true"] QLabel#ProfileLogoutBtnIcon {{
+		color: rgba(255,233,166,0.98);
+	}}
+	QFrame#ProfileLogoutBtn[pressed="true"] QLabel#ProfileLogoutBtnText {{
+		color: rgba(255,255,255,1.00);
+	}}
+
+	QFrame#ProfileLogoutBtn:disabled {{
+		background: rgba(8,10,12,0.70);
+		border: 1px solid rgba(212,175,55,0.10);
+	}}
+	QFrame#ProfileLogoutBtn:disabled QLabel {{
+		color: rgba(235,241,255,0.35);
 	}}
 
 	/* =========================

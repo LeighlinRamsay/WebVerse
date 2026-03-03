@@ -6,7 +6,7 @@ import threading
 import time
 from typing import Dict, List, Optional
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 
 from webverse.core.registry import discover_labs, discover_learning_labs, discover_learning_tracks
 from webverse.core.runtime import get_running_lab, set_running_lab
@@ -41,6 +41,11 @@ class AppState(QObject):
 		self._docker_text: str = "Docker: Unknown"
 		self._docker_kind: str = "neutral"
 
+		# ---- Docker check worker state ----
+		self._docker_check_lock = threading.Lock()
+		self._docker_check_inflight: bool = False
+		self._docker_check_pending: bool = False
+
 		self._runtime_op: str = "stopped"
 		self._runtime_op_lab_id: Optional[str] = None
 
@@ -52,8 +57,8 @@ class AppState(QObject):
 		self._notes_cache: Dict[str, str] = {}
 
 		self.refresh_labs()
-		self.refresh_docker()
-		self._verify_runtime_running_lab()
+		# Never block the UI thread on Docker/Compose cold-start checks.
+		self.refresh_docker_async(verify_runtime=True)
 
 	def on_auth_changed(self) -> None:
 		"""
@@ -596,10 +601,7 @@ class AppState(QObject):
 		self.running_changed.emit(self.running())
 
 	# ---- Docker status ----
-	def refresh_docker(self) -> None:
-		docker_ok, docker_msg = docker_available()
-		compose_ok, compose_msg = compose_v2_available()
-
+	def _set_docker_state(self, docker_ok: bool, docker_msg: str, compose_ok: bool, compose_msg: str) -> None:
 		if docker_ok and compose_ok:
 			self._docker_text = f"Docker: {docker_msg} · Compose v2: {compose_msg}"
 			self._docker_kind = "ok"
@@ -612,35 +614,107 @@ class AppState(QObject):
 			# Docker itself unavailable; Compose status is secondary here
 			self._docker_text = f"Docker: Unavailable ({docker_msg})"
 			self._docker_kind = "bad"
-		self.docker_changed.emit(self._docker_text, self._docker_kind)
+		try:
+			self.docker_changed.emit(self._docker_text, self._docker_kind)
+		except Exception:
+			pass
 
+	def refresh_docker(self) -> None:
+		"""Synchronous docker check. Prefer refresh_docker_async() for UI."""
+		docker_ok, docker_msg = docker_available()
+		compose_ok, compose_msg = compose_v2_available()
+		self._set_docker_state(docker_ok, docker_msg, compose_ok, compose_msg)
+
+	def refresh_docker_async(self, *, verify_runtime: bool = True) -> None:
+		"""Non-blocking Docker/Compose checks.
+
+		- Runs subprocess checks off the UI thread.
+		- Emits docker_changed when complete.
+		- Optionally verifies runtime.json against actual Compose state without blocking.
+		"""
+		# Emit immediate "checking" status so surfaces can render right away.
+		try:
+			self._docker_text = "Docker: Checking…"
+			self._docker_kind = "neutral"
+			self.docker_changed.emit(self._docker_text, self._docker_kind)
+		except Exception:
+			pass
+
+		with self._docker_check_lock:
+			if self._docker_check_inflight:
+				# Coalesce: run one more check after the current one completes.
+				self._docker_check_pending = True
+				return
+			self._docker_check_inflight = True
+			self._docker_check_pending = False
+
+		def _bg():
+			docker_ok = False
+			compose_ok = False
+			docker_msg = ""
+			compose_msg = ""
+			clear_running = False
+
+			try:
+				docker_ok, docker_msg = docker_available()
+				compose_ok, compose_msg = compose_v2_available()
+
+				if verify_runtime and docker_ok and compose_ok and self._running_lab_id:
+					rid = str(self._running_lab_id)
+					try:
+						all_labs = list(self.all_labs())
+					except Exception:
+						all_labs = []
+					lab = next((x for x in all_labs if str(getattr(x, "id", "")) == rid), None)
+					if not lab:
+						clear_running = True
+					else:
+						try:
+							running, _details = compose_has_running(str(lab.path), lab.compose_file)
+							if not running:
+								clear_running = True
+						except Exception:
+							# If Compose query fails, don't mutate runtime state.
+							clear_running = False
+			except Exception:
+				# Treat failures as unavailable; message should be best-effort.
+				pass
+
+			def _apply():
+				# Mark the worker as done.
+				with self._docker_check_lock:
+					self._docker_check_inflight = False
+					pending = bool(self._docker_check_pending)
+					self._docker_check_pending = False
+
+				self._set_docker_state(docker_ok, docker_msg, compose_ok, compose_msg)
+
+				if clear_running:
+					try:
+						set_running_lab(None)
+					except Exception:
+						pass
+					self._running_lab_id = None
+					try:
+						self.running_changed.emit(None)
+					except Exception:
+						pass
+
+				# If another check was requested while we were running, run it now.
+				if pending:
+					self.refresh_docker_async(verify_runtime=verify_runtime)
+
+			try:
+				QTimer.singleShot(0, _apply)
+			except Exception:
+				# If Qt isn't ready yet, apply directly (best-effort).
+				_apply()
+
+		threading.Thread(target=_bg, daemon=True).start()
 
 	def _verify_runtime_running_lab(self) -> None:
-		"""
-		Prevent stale runtime state from blocking the UI.
-		If runtime.json says a lab is running but Compose reports nothing running, clear it.
-		"""
-		if not self._running_lab_id:
-			return
-
-		docker_ok, _ = docker_available()
-		compose_ok, _ = compose_v2_available()
-		if not (docker_ok and compose_ok):
-			# If Docker/Compose aren't available, don't mutate runtime state.
-			return
-
-		lab = next((x for x in self.all_labs() if x.id == self._running_lab_id), None)
-		if not lab:
-			set_running_lab(None)
-			self._running_lab_id = None
-			self.running_changed.emit(None)
-			return
-
-		running, _details = compose_has_running(str(lab.path), lab.compose_file)
-		if not running:
-			set_running_lab(None)
-			self._running_lab_id = None
-			self.running_changed.emit(None)
+		"""Non-blocking runtime verification; kept for backwards compatibility."""
+		self.refresh_docker_async(verify_runtime=True)
 
 	def docker_status(self):
 		return self._docker_text, self._docker_kind
