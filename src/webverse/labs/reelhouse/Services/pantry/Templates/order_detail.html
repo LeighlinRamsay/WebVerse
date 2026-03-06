@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }} — Pantry{% endblock %}
+{% block content %}
+<div class="detail-page">
+  <h1>Order #{{ order.id }}</h1>
+  <div class="detail-card">
+    <table class="info-table">
+      <tr><th>Supplier</th><td>{{ order.supplier_name }}</td></tr>
+      <tr><th>Item</th><td>{{ order.item_name }}</td></tr>
+      <tr><th>Quantity</th><td>{{ order.quantity }}</td></tr>
+      <tr><th>Status</th><td><span class="badge badge-{{ order.status }}">{{ order.status }}</span></td></tr>
+      <tr><th>Created</th><td>{{ order.created_at }}</td></tr>
+    </table>
+  </div>
+</div>
+{% endblock %}

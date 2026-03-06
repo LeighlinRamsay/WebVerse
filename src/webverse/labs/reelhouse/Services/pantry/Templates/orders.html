@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Orders — Pantry{% endblock %}
+{% block content %}
+<div class="orders-page">
+  <h1>Supplier Orders</h1>
+  <div class="filter-bar">
+    <form method="GET" action="/supplier/api/orders">
+      <input type="text" name="q" placeholder="Search orders..." value="{{ request.args.get('q', '') }}">
+      <select name="status">
+        <option value="">All</option>
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="delivered">Delivered</option>
+      </select>
+      <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+  </div>
+  <table>
+    <thead><tr><th>ID</th><th>Supplier</th><th>Item</th><th>Qty</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for o in orders %}
+      <tr>
+        <td><a href="/supplier/api/orders?order_id={{ o.id }}">{{ o.id }}</a></td>
+        <td>{{ o.supplier_name }}</td>
+        <td>{{ o.item_name }}</td>
+        <td>{{ o.quantity }}</td>
+        <td><span class="badge badge-{{ o.status }}">{{ o.status }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

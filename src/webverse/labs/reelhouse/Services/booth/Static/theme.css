@@ -1,0 +1,10 @@
+:root {
+  --theme-bg: #0a0e12;
+  --theme-fg: #b8c0cc;
+  --theme-accent: #2ecc71;
+  --theme-accent-2: #27ae60;
+  --theme-card: #141a22;
+  --theme-border: #1e2830;
+  --theme-radius: var(--brand-radius-sm);
+  --theme-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Overview — Pantry{% endblock %}
+{% block content %}
+<div class="overview">
+  <h1>Concession Supply Overview</h1>
+  <div class="kanban">
+    <div class="kanban-lane">
+      <h2 class="lane-header">Pending</h2>
+      {% for o in orders if o.status == "pending" %}
+      <a class="kanban-card kanban-link" href="/supplier/api/orders?order_id={{ o.id }}">
+        <strong>{{ o.item_name }}</strong>
+        <p>{{ o.supplier_name }} &middot; Qty: {{ o.quantity }}</p>
+      </a>
+      {% endfor %}
+    </div>
+    <div class="kanban-lane">
+      <h2 class="lane-header">Confirmed</h2>
+      {% for o in orders if o.status == "confirmed" %}
+      <a class="kanban-card kanban-link" href="/supplier/api/orders?order_id={{ o.id }}">
+        <strong>{{ o.item_name }}</strong>
+        <p>{{ o.supplier_name }} &middot; Qty: {{ o.quantity }}</p>
+      </a>
+      {% endfor %}
+    </div>
+    <div class="kanban-lane">
+      <h2 class="lane-header">Delivered</h2>
+      {% for o in orders if o.status == "delivered" %}
+      <a class="kanban-card kanban-link" href="/supplier/api/orders?order_id={{ o.id }}">
+        <strong>{{ o.item_name }}</strong>
+        <p>{{ o.supplier_name }} &middot; Qty: {{ o.quantity }}</p>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

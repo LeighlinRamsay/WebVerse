@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Film Distribution — ReelHouse{% endblock %}</title>
+  <link rel="stylesheet" href="/Static/brand.css">
+  <link rel="stylesheet" href="/Static/theme.css">
+  <link rel="stylesheet" href="/Static/styles.css">
+  <link rel="icon" href="/Static/icon.svg" type="image/svg+xml">
+</head>
+<body>
+  <div class="layout">
+    <aside class="left-rail">
+      <div class="rail-header">
+        <img src="/Static/icon.svg" alt="ReelHouse" class="rail-logo">
+        <span class="rail-title">Prints</span>
+      </div>
+      <nav class="rail-nav">
+        <a href="/" class="rail-link">Dashboard</a>
+        <a href="/distributions" class="rail-link">Distributions</a>
+        <a href="/schedule" class="rail-link">Schedule</a>
+      </nav>
+    </aside>
+    <main class="main-panel">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ReelHouse{% endblock %}</title>
+  <link rel="stylesheet" href="/Static/brand.css">
+  <link rel="stylesheet" href="/Static/theme.css">
+  <link rel="stylesheet" href="/Static/styles.css">
+  <link rel="icon" href="/Static/icon.svg" type="image/svg+xml">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="/" class="logo-link">
+        <img src="/Static/icon.svg" alt="ReelHouse" class="logo-icon">
+        <span class="logo-text">ReelHouse</span>
+      </a>
+      <nav class="topnav">
+        <a href="/">Now Showing</a>
+        <a href="/reviews">Reviews</a>
+        <a href="/contact">Contact</a>
+        {% if session.get("username") %}
+          <a href="/account">My Account</a>
+          {% if session.get("role") == "staff" %}
+            <a href="/staff" class="staff-link">Staff Tools</a>
+          {% endif %}
+          <a href="/logout">Logout</a>
+        {% else %}
+          <a href="/login">Sign In</a>
+          <a href="/register">Sign Up</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+  <main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <p>ReelHouse Cinema Group &copy; 2025</p>
+  </footer>
+</body>
+</html>

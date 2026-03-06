@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}ReelHouse — Now Showing{% endblock %}
+{% block content %}
+<section class="hero-banner">
+  <h1>Now Showing</h1>
+  <p>Curated cinema for curious minds</p>
+</section>
+<section class="search-bar">
+  <form method="GET" action="/">
+    <select name="genre">
+      <option value="">All Genres</option>
+      {% for g in genres %}
+        <option value="{{ g }}" {% if request.args.get('genre') == g %}selected{% endif %}>{{ g }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Search</button>
+  </form>
+</section>
+<section class="movie-grid">
+  {% for movie in movies %}
+  <div class="movie-card">
+    <div class="movie-poster" style="background-color: {{ movie.poster_color }};">
+      <span class="poster-title">{{ movie.title }}</span>
+    </div>
+    <div class="movie-info">
+      <h2><a href="/movies/{{ movie.id }}">{{ movie.title }}</a></h2>
+      <p class="movie-meta">{{ movie.genre }} &middot; {{ movie.duration_min }} min &middot; {{ movie.rating }}</p>
+      {% if movie.screenings %}
+      <div class="showtime-chips">
+        {% for s in movie.screenings %}
+          <span class="chip">{{ s.show_time }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}

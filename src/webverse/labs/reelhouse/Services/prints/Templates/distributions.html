@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Distributions — Film Distribution{% endblock %}
+{% block content %}
+<div class="distributions-page">
+  <h1>All Distributions</h1>
+  <div class="filter-bar">
+    <form method="GET" action="/distributions">
+      <input type="text" name="q" placeholder="Search by title..." value="{{ request.args.get('q', '') }}">
+      <select name="status">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="shipped">Shipped</option>
+        <option value="received">Received</option>
+      </select>
+      <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+  </div>
+  <table>
+    <thead><tr><th>ID</th><th>Title</th><th>Distributor</th><th>Format</th><th>Status</th><th>Print Ref</th></tr></thead>
+    <tbody>
+      {% for d in distributions %}
+      <tr>
+        <td>{{ d.id }}</td>
+        <td><a href="/distributions/{{ d.id }}">{{ d.title }}</a></td>
+        <td>{{ d.distributor }}</td>
+        <td>{{ d.format_type }}</td>
+        <td><span class="badge badge-{{ d.status }}">{{ d.status }}</span></td>
+        <td>{{ d.print_ref }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

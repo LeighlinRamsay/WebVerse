@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ movie.title }} — ReelHouse{% endblock %}
+{% block content %}
+<article class="movie-detail">
+  <div class="movie-hero" style="background-color: {{ movie.poster_color }};">
+    <h1>{{ movie.title }}</h1>
+    <p class="movie-meta">{{ movie.genre }} &middot; {{ movie.duration_min }} min &middot; {{ movie.rating }}</p>
+  </div>
+  <div class="movie-body">
+    <p class="synopsis">{{ movie.synopsis }}</p>
+    <h2>Screenings</h2>
+    {% if screenings %}
+    <table>
+      <thead><tr><th>Date</th><th>Time</th><th>Screen</th><th>Price</th></tr></thead>
+      <tbody>
+        {% for s in screenings %}
+        <tr><td>{{ s.show_date }}</td><td>{{ s.show_time }}</td><td>{{ s.screen_room }}</td><td>${{ s.price }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty-state">No upcoming screenings scheduled.</p>
+    {% endif %}
+    <h2>Reviews</h2>
+    {% if reviews %}
+    {% for r in reviews %}
+    <div class="review-card">
+      <div class="review-header"><strong>{{ r.display_name }}</strong> <span class="review-rating">{{ r.rating }}/5</span></div>
+      <p>{{ r.review_text }}</p>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="empty-state">No reviews yet. Be the first!</p>
+    {% endif %}
+  </div>
+</article>
+{% endblock %}

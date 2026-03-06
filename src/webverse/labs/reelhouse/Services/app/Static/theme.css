@@ -1,0 +1,10 @@
+:root {
+  --theme-bg: var(--brand-bg);
+  --theme-fg: var(--brand-fg);
+  --theme-accent: var(--brand-primary);
+  --theme-accent-2: var(--brand-primary-2);
+  --theme-card: var(--brand-card);
+  --theme-border: var(--brand-border);
+  --theme-radius: var(--brand-radius-md);
+  --theme-shadow: var(--brand-shadow-2);
+}

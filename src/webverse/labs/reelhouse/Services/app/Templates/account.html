@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}My Account — ReelHouse{% endblock %}
+{% block content %}
+<div class="account-page">
+  <h1>My Account</h1>
+  <div class="account-card">
+    <h2>Profile</h2>
+    <p><strong>Username:</strong> {{ session.get("username") }}</p>
+    <p><strong>Display Name:</strong> {{ member.display_name if member else "N/A" }}</p>
+    <p><strong>Membership Tier:</strong> {{ ["Basic", "Silver", "Gold"][member.tier_id - 1] if member else "Basic" }}</p>
+    <p><strong>Email:</strong> {{ member.email if member else "N/A" }}</p>
+  </div>
+  <div class="account-card">
+    <h2>Upgrade Membership</h2>
+    <form method="POST" action="/account/upgrade">
+      <label for="tier_id">Select Tier:</label>
+      <select name="tier_id" id="tier_id">
+        <option value="1">Basic</option>
+        <option value="2">Silver</option>
+        <option value="3">Gold</option>
+      </select>
+      <button type="submit" class="btn btn-primary">Upgrade</button>
+    </form>
+  </div>
+  <div class="account-card">
+    <h2>Change Password</h2>
+    <form method="POST" action="/account/password">
+      <label for="current_password">Current Password:</label>
+      <input type="password" name="current_password" id="current_password" required>
+      <label for="new_password">New Password:</label>
+      <input type="password" name="new_password" id="new_password" required>
+      <button type="submit" class="btn btn-secondary">Update Password</button>
+    </form>
+  </div>
+  {% if session.get("role") == "staff" %}
+  <div class="account-card staff-section">
+    <h2>Staff Tools</h2>
+    <div class="staff-links">
+      <a href="http://prints.reelhouse.local/" class="staff-tool-link">Film Distribution Console</a>
+      <a href="http://pantry.reelhouse.local/" class="staff-tool-link">Concession Supply Chain</a>
+      <a href="http://booth.reelhouse.local/" class="staff-tool-link">Projection Equipment Console</a>
+    </div>
+    <div class="staff-memo">
+      <h3>Internal Notices</h3>
+      <div class="memo-entry">
+        <span class="memo-date">2025-03-12</span>
+        <span class="memo-ref">INTERNAL-2847</span>
+        <p>Reminder: Per directive INTERNAL-2847, film print reference codes are now used as supplier authentication tokens for the pantry system. This streamlines cross-system authorization. Projection booth access is currently using temporary 4 digit maintenance codes until the keypad replacement is completed.</p>
+      </div>
+      <div class="memo-entry">
+        <span class="memo-date">2025-03-10</span>
+        <span class="memo-ref">MAINT-1103</span>
+        <p>Screen C projector scheduled for parts replacement. Christie service dispatched. Expected downtime: 5 business days.</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

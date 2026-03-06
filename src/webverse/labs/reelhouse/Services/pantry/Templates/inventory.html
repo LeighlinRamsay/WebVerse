@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Inventory — Pantry{% endblock %}
+{% block content %}
+<div class="inventory-page">
+  <h1>Inventory Levels</h1>
+  <table>
+    <thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Unit</th><th>Reorder Level</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for i in items %}
+      <tr>
+        <td>{{ i.item_name }}</td>
+        <td>{{ i.category }}</td>
+        <td>{{ i.quantity }}</td>
+        <td>{{ i.unit }}</td>
+        <td>{{ i.reorder_level }}</td>
+        <td>
+          {% if i.quantity <= i.reorder_level %}
+            <span class="badge badge-danger">Low Stock</span>
+          {% else %}
+            <span class="badge badge-active">OK</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

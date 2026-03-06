@@ -1,0 +1,17 @@
+id: reelhouse
+name: ReelHouse
+difficulty: hard
+description: 'An independent cinema chain discovers irregularities in its internal management platform. Multiple interconnected systems may be at risk.'
+story: |
+  An independent cinema chain discovers irregularities in its internal management platform. Multiple interconnected systems may be at risk.
+compose_file: docker-compose.yml
+image: cover.png
+entrypoint:
+  base_url: http://reelhouse.local/
+tags:
+- mass-assignment
+- brute-force
+- second-order-sqli
+- business-logic
+- authentication
+flag_sha256: 414585e7a5489de0377f7b3b63e8ffbe4e11726660561b5a3b49433293a1221d

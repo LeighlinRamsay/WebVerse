@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Booth Console — ReelHouse{% endblock %}</title>
+  <link rel="stylesheet" href="/Static/brand.css">
+  <link rel="stylesheet" href="/Static/theme.css">
+  <link rel="stylesheet" href="/Static/styles.css">
+  <link rel="icon" href="/Static/icon.svg" type="image/svg+xml">
+</head>
+<body>
+  {% if session.get("booth_auth") %}
+  <nav class="breadcrumb-bar">
+    <span class="bc-item"><a href="/dashboard">Console</a></span>
+    {% block breadcrumbs %}{% endblock %}
+  </nav>
+  {% endif %}
+  <main class="booth-main">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

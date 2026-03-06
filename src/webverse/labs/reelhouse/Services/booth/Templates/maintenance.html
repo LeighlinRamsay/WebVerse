@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Request Maintenance — Booth Console{% endblock %}
+{% block breadcrumbs %}<span class="bc-sep">/</span><a href="/dashboard" class="bc-item">Dashboard</a><span class="bc-sep">/</span><span class="bc-item active">Maintenance</span>{% endblock %}
+{% block content %}
+<div class="maintenance-page">
+  <h1>Request Maintenance</h1>
+  <div class="form-card">
+    {% if submitted %}
+    <div class="success-msg">Maintenance request submitted. A technician will be assigned shortly.</div>
+    {% endif %}
+    <form method="POST" action="/maintenance">
+      <label for="equipment_id">Equipment:</label>
+      <select name="equipment_id" id="equipment_id">
+        {% for e in equipment %}
+        <option value="{{ e.id }}">{{ e.name }} (Room {{ e.room_number }})</option>
+        {% endfor %}
+      </select>
+      <label for="issue">Issue Description:</label>
+      <textarea name="issue" id="issue" rows="4" required></textarea>
+      <label for="priority">Priority:</label>
+      <select name="priority" id="priority">
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+      <button type="submit" class="btn btn-primary">Submit Request</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

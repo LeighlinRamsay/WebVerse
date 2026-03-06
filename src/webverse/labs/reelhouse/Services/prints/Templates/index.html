@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Film Distribution{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <h1>Distribution Dashboard</h1>
+  <div class="stat-cards">
+    <div class="stat-card"><span class="stat-number">{{ total }}</span><span class="stat-label">Total Prints</span></div>
+    <div class="stat-card"><span class="stat-number">{{ pending }}</span><span class="stat-label">Pending</span></div>
+    <div class="stat-card"><span class="stat-number">{{ received }}</span><span class="stat-label">Received</span></div>
+  </div>
+  <h2>Recent Activity</h2>
+  <table>
+    <thead><tr><th>Title</th><th>Distributor</th><th>Status</th><th>Print Ref</th></tr></thead>
+    <tbody>
+      {% for d in distributions %}
+      <tr>
+        <td><a href="/distributions/{{ d.id }}">{{ d.title }}</a></td>
+        <td>{{ d.distributor }}</td>
+        <td><span class="badge badge-{{ d.status }}">{{ d.status }}</span></td>
+        <td>{{ d.print_ref }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Pantry — ReelHouse{% endblock %}</title>
+  <link rel="stylesheet" href="/Static/brand.css">
+  <link rel="stylesheet" href="/Static/theme.css">
+  <link rel="stylesheet" href="/Static/styles.css">
+  <link rel="icon" href="/Static/icon.svg" type="image/svg+xml">
+</head>
+<body>
+  <header class="tab-header">
+    <div class="tab-header-inner">
+      <div class="tab-brand">
+        <img src="/Static/icon.svg" alt="ReelHouse" class="tab-logo">
+        <span class="tab-title">Pantry</span>
+      </div>
+      <nav class="tab-nav">
+        <a href="/" class="tab {% if request.path == '/' %}active{% endif %}">Overview</a>
+        <a href="/supplier/api/orders" class="tab {% if request.path.startswith('/supplier/api/orders') or '/orders' in request.path %}active{% endif %}">Orders</a>
+        <a href="/inventory" class="tab {% if '/inventory' in request.path %}active{% endif %}">Inventory</a>
+      </nav>
+    </div>
+  </header>
+  <main class="pantry-main">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

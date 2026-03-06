@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Sign In — ReelHouse{% endblock %}
+{% block content %}
+<div class="login-page">
+  <div class="login-card">
+    <h1>Sign In</h1>
+    {% if error %}
+    <div class="flash flash-error">{{ error }}</div>
+    {% endif %}
+    <form method="POST" action="/login">
+      <label for="username">Username:</label>
+      <input type="text" name="username" id="username" required>
+      <label for="password">Password:</label>
+      <input type="password" name="password" id="password" required>
+      <button type="submit" class="btn btn-primary">Sign In</button>
+    </form>
+    <p class="login-help">New here? <a href="/register">Create an account</a> to get started.</p>
+  </div>
+</div>
+{% endblock %}

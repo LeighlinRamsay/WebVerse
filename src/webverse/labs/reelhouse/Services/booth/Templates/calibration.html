@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Calibration Log — Booth Console{% endblock %}
+{% block breadcrumbs %}<span class="bc-sep">/</span><a href="/dashboard" class="bc-item">Dashboard</a><span class="bc-sep">/</span><span class="bc-item active">Calibration</span>{% endblock %}
+{% block content %}
+<div class="calibration-page">
+  <h1>Full Calibration History</h1>
+  <div class="log-stream">
+    {% for log in logs %}
+    <div class="log-entry">
+      <span class="log-time">{{ log.logged_at }}</span>
+      <span class="log-equip">{{ log.equip_name }}</span>
+      <p class="log-text">{{ log.log_entry }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

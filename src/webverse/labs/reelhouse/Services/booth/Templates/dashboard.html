@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Booth Console{% endblock %}
+{% block breadcrumbs %}<span class="bc-sep">/</span><span class="bc-item active">Dashboard</span>{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <h1>Equipment Status</h1>
+  <div class="equipment-grid">
+    {% for e in equipment %}
+    <div class="equip-card equip-{{ e.status }}">
+      <div class="equip-header">
+        <strong>{{ e.name }}</strong>
+        <span class="badge badge-{% if e.status == "operational" %}active{% elif e.status == "maintenance" %}danger{% else %}pending{% endif %}">{{ e.status }}</span>
+      </div>
+      <p class="equip-meta">Group {{ e.equipment_group }} &middot; Room {{ e.room_number }}</p>
+      <p class="equip-check">Last check: {{ e.last_check }}</p>
+      <a href="/equipment/{{ e.id }}" class="equip-detail-link">View Details</a>
+    </div>
+    {% endfor %}
+  </div>
+  <h2>Recent Calibration Log</h2>
+  <div class="log-stream">
+    {% for log in logs %}
+    <div class="log-entry">
+      <span class="log-time">{{ log.logged_at }}</span>
+      <span class="log-equip">{{ log.equip_name }}</span>
+      <p class="log-text">{{ log.log_entry }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  <p><a href="/calibration">View Full Calibration History</a> &middot; <a href="/maintenance">Request Maintenance</a></p>
+</div>
+{% endblock %}

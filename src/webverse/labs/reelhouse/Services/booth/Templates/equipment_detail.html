@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ equip.name }} — Booth Console{% endblock %}
+{% block breadcrumbs %}
+<span class="bc-sep">/</span><a href="/dashboard" class="bc-item">Dashboard</a>
+<span class="bc-sep">/</span><span class="bc-item active">{{ equip.name }}</span>
+{% endblock %}
+{% block content %}
+<div class="detail-page">
+  <h1>{{ equip.name }}</h1>
+  <div class="detail-card">
+    <table class="info-table">
+      <tr><th>Group</th><td>{{ equip.equipment_group }}</td></tr>
+      <tr><th>Room</th><td>{{ equip.room_number }}</td></tr>
+      <tr><th>Status</th><td><span class="badge badge-{% if equip.status == "operational" %}active{% else %}danger{% endif %}">{{ equip.status }}</span></td></tr>
+      <tr><th>Last Check</th><td>{{ equip.last_check }}</td></tr>
+    </table>
+  </div>
+  <h2>Calibration History</h2>
+  <div class="log-stream">
+    {% for log in logs %}
+    <div class="log-entry">
+      <span class="log-time">{{ log.logged_at }}</span>
+      <p class="log-text">{{ log.log_entry }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

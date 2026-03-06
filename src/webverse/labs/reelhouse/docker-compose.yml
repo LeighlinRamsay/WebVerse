@@ -1,0 +1,115 @@
+version: "3.9"
+
+services:
+  gateway:
+    build:
+      context: ./gateway
+    container_name: wv_reelhouse_gateway
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+      - prints
+      - pantry
+      - booth
+    restart: unless-stopped
+    networks:
+      - wvnet
+
+  app:
+    build:
+      context: ./Services/app
+    container_name: wv_reelhouse_app
+    environment:
+      DB_HOST: db
+      DB_USER: rh_app
+      DB_PASSWORD: rhAppS3cure2024
+      DB_NAME: reelhouse_db
+      SECRET_KEY: app-secret-reelhouse-2024
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - wvnet
+
+  prints:
+    build:
+      context: ./Services/prints
+    container_name: wv_reelhouse_prints
+    environment:
+      DB_HOST: db
+      DB_USER: rh_app
+      DB_PASSWORD: rhAppS3cure2024
+      DB_NAME: reelhouse_db
+      FLAG: WEBVERSE{r33l_h0us3_pr1nt_cl34r3d_2847}
+      SECRET_KEY: prints-secret-reelhouse-2024
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - wvnet
+
+  pantry:
+    build:
+      context: ./Services/pantry
+    container_name: wv_reelhouse_pantry
+    environment:
+      DB_HOST: db
+      DB_USER: rh_app
+      DB_PASSWORD: rhAppS3cure2024
+      DB_NAME: reelhouse_db
+      SECRET_KEY: pantry-secret-reelhouse-2024
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - wvnet
+
+  booth:
+    build:
+      context: ./Services/booth
+    container_name: wv_reelhouse_booth
+    environment:
+      DB_HOST: db
+      DB_USER: rh_app
+      DB_PASSWORD: rhAppS3cure2024
+      DB_NAME: reelhouse_db
+      SECRET_KEY: booth-secret-reelhouse-2024
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - wvnet
+
+  db:
+    build:
+      context: ./Services/db
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: wv_reelhouse_db
+    environment:
+      MYSQL_ROOT_PASSWORD: r00tR33lH0use
+      MYSQL_DATABASE: reelhouse_db
+      MYSQL_USER: rh_app
+      MYSQL_PASSWORD: rhAppS3cure2024
+      MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./Services/db/initdb.d:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+    networks:
+      - wvnet
+
+volumes:
+  db_data:
+
+networks:
+  wvnet:

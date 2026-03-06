@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Equipment Access — Booth Console{% endblock %}
+{% block content %}
+<div class="login-container">
+  <div class="login-box">
+    <img src="/Static/icon.svg" alt="ReelHouse" class="login-logo">
+    <h1>Projection Booth Console</h1>
+    <p class="equipment-group">Equipment Group: A7</p>
+    {% if error %}
+    <div class="error-msg">{{ error }}</div>
+    {% endif %}
+    <form method="POST" action="/login">
+      <label for="pin">Equipment PIN (4 digits):</label>
+      <input type="password" name="pin" id="pin" maxlength="4" pattern="[0-9]{4}" required autocomplete="off">
+      <button type="submit" class="btn btn-primary">Access Console</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

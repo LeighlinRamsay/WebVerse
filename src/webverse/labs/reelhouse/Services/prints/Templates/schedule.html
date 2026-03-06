@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Schedule — Film Distribution{% endblock %}
+{% block content %}
+<div class="schedule-page">
+  <h1>Distribution Schedule</h1>
+  <p class="page-desc">Upcoming film print arrivals and deadlines.</p>
+  <table>
+    <thead><tr><th>Title</th><th>Expected</th><th>Format</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for d in distributions %}
+      <tr>
+        <td>{{ d.title }}</td>
+        <td>{{ d.created_at }}</td>
+        <td>{{ d.format_type }}</td>
+        <td><span class="badge badge-{{ d.status }}">{{ d.status }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

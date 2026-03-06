@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Reviews — ReelHouse{% endblock %}
+{% block content %}
+<div class="reviews-page">
+  <h1>Member Reviews</h1>
+  {% if session.get("username") %}
+  <div class="review-form-card">
+    <h2>Write a Review</h2>
+    <form method="POST" action="/reviews">
+      <label for="movie_id">Movie:</label>
+      <select name="movie_id" id="movie_id">
+        {% for m in movies %}
+        <option value="{{ m.id }}">{{ m.title }}</option>
+        {% endfor %}
+      </select>
+      <label for="rating">Rating (1-5):</label>
+      <select name="rating" id="rating">
+        <option value="5">5 — Outstanding</option>
+        <option value="4">4 — Great</option>
+        <option value="3">3 — Good</option>
+        <option value="2">2 — Fair</option>
+        <option value="1">1 — Poor</option>
+      </select>
+      <label for="review_text">Your Review:</label>
+      <textarea name="review_text" id="review_text" rows="4" required></textarea>
+      <button type="submit" class="btn btn-primary">Submit Review</button>
+    </form>
+  </div>
+  {% endif %}
+  <div class="reviews-list">
+    {% for r in reviews %}
+    <div class="review-card">
+      <div class="review-header">
+        <strong>{{ r.display_name }}</strong> reviewed <em>{{ r.title }}</em>
+        <span class="review-rating">{{ r.rating }}/5</span>
+      </div>
+      <p>{{ r.review_text }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

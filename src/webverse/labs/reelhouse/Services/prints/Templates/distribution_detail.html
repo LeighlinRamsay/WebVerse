@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ dist.title }} — Film Distribution{% endblock %}
+{% block content %}
+<div class="detail-page">
+  <h1>{{ dist.title }}</h1>
+  <div class="detail-card">
+    <div class="timeline">
+      <div class="timeline-entry {% if dist.status in ["pending","shipped","received"] %}active{% endif %}">
+        <span class="tl-dot"></span><span class="tl-label">Created</span>
+        <span class="tl-date">{{ dist.created_at }}</span>
+      </div>
+      <div class="timeline-entry {% if dist.status in ["shipped","received"] %}active{% endif %}">
+        <span class="tl-dot"></span><span class="tl-label">Shipped</span>
+      </div>
+      <div class="timeline-entry {% if dist.status == "received" %}active{% endif %}">
+        <span class="tl-dot"></span><span class="tl-label">Received</span>
+      </div>
+    </div>
+    <table class="info-table">
+      <tr><th>Distributor</th><td>{{ dist.distributor }}</td></tr>
+      <tr><th>Format</th><td>{{ dist.format_type }}</td></tr>
+      <tr><th>Print Reference</th><td>{{ dist.print_ref }}</td></tr>
+      <tr><th>Status</th><td><span class="badge badge-{{ dist.status }}">{{ dist.status }}</span></td></tr>
+      <tr><th>Notes</th><td>{{ dist.notes }}</td></tr>
+    </table>
+  </div>
+</div>
+{% endblock %}
