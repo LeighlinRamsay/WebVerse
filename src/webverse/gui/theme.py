@@ -394,6 +394,151 @@ def qss_onyx_amber(scale: float = DEFAULT_UI_SCALE) -> str:
 		outline: none;
 	}}
 
+	/* ---- Home mission hub ---- */
+	QLabel#HomeEyebrow {{
+		font-size: {small}px;
+		font-weight: 950;
+		letter-spacing: 1.6px;
+		color: rgba(245,197,66,0.90);
+	}}
+
+	QFrame#HomeHero {{
+		background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+			stop:0 rgba(16,20,28,0.86),
+			stop:0.52 rgba(20,24,34,0.82),
+			stop:1 rgba(40,22,16,0.72)
+		);
+		border: 1px solid rgba(255,255,255,0.10);
+		border-radius: {r_xl}px;
+	}}
+
+	QLabel#HomeHeroTitle {{
+		font-size: { _i(32 * scale) }px;
+		font-weight: 950;
+		color: rgba(245,247,255,0.96);
+	}}
+
+	QLabel#HomeHeroSummary {{
+		font-size: { _i(14 * scale) }px;
+		font-weight: 700;
+		color: rgba(235,241,255,0.76);
+		line-height: 1.35;
+	}}
+
+	QLabel#HomeMetaPill {{
+		padding: 6px 12px;
+		border-radius: 999px;
+		background: rgba(16,20,28,0.72);
+		border: 1px solid rgba(255,255,255,0.10);
+		font-weight: 900;
+		color: rgba(245,247,255,0.92);
+	}}
+	QLabel#HomeMetaPill[variant="easy"] {{
+		background: rgba(34,197,94,0.12);
+		border: 1px solid rgba(34,197,94,0.28);
+		color: rgba(34,197,94,0.96);
+	}}
+	QLabel#HomeMetaPill[variant="medium"] {{
+		background: rgba(245,197,66,0.12);
+		border: 1px solid rgba(245,197,66,0.28);
+		color: rgba(245,197,66,0.98);
+	}}
+	QLabel#HomeMetaPill[variant="hard"] {{
+		background: rgba(239,68,68,0.12);
+		border: 1px solid rgba(239,68,68,0.26);
+		color: rgba(255,120,120,0.98);
+	}}
+	QLabel#HomeMetaPill[variant="master"] {{
+		background: rgba(168,85,247,0.12);
+		border: 1px solid rgba(168,85,247,0.26);
+		color: rgba(196,140,255,0.98);
+	}}
+
+	QLabel#HomeReward {{
+		font-size: { _i(14 * scale) }px;
+		font-weight: 900;
+		color: rgba(245,197,66,0.96);
+	}}
+
+	QFrame#HomeCallout {{
+		background: rgba(255,255,255,0.04);
+		border: 1px solid rgba(255,255,255,0.08);
+		border-radius: {r_lg}px;
+	}}
+
+	QLabel#HomeCalloutTitle {{
+		font-size: { _i(17 * scale) }px;
+		font-weight: 950;
+		color: rgba(245,247,255,0.95);
+	}}
+
+	QLabel#HomeCalloutMeta {{
+		font-weight: 800;
+		color: rgba(235,241,255,0.70);
+	}}
+
+	QLabel#HomeStateBadge {{
+		padding: 6px 12px;
+		border-radius: 999px;
+		font-weight: 950;
+		letter-spacing: 0.5px;
+		background: rgba(255,255,255,0.06);
+		border: 1px solid rgba(255,255,255,0.10);
+		color: rgba(245,247,255,0.92);
+	}}
+	QLabel#HomeStateBadge[variant="active"] {{
+		background: rgba(34,197,94,0.14);
+		border: 1px solid rgba(34,197,94,0.32);
+		color: rgba(34,197,94,0.96);
+	}}
+	QLabel#HomeStateBadge[variant="warn"] {{
+		background: rgba(245,197,66,0.14);
+		border: 1px solid rgba(245,197,66,0.30);
+		color: rgba(245,197,66,0.98);
+	}}
+
+	QLabel#HomeHeroArt {{
+		background: transparent;
+	}}
+
+	QFrame#HomeActivityRow {{
+		background: rgba(255,255,255,0.03);
+		border: 1px solid rgba(255,255,255,0.06);
+		border-radius: {r_lg}px;
+	}}
+
+	QLabel#HomeActivityDot {{
+		font-size: { _i(18 * scale) }px;
+		color: rgba(235,241,255,0.38);
+	}}
+	QLabel#HomeActivityDot[variant="active"] {{ color: rgba(34,197,94,0.95); }}
+	QLabel#HomeActivityDot[variant="success"] {{ color: rgba(34,197,94,0.95); }}
+	QLabel#HomeActivityDot[variant="warn"] {{ color: rgba(245,197,66,0.96); }}
+
+	QLabel#HomeActivityBadge {{
+		padding: 4px 10px;
+		border-radius: 999px;
+		font-weight: 950;
+		background: rgba(255,255,255,0.06);
+		border: 1px solid rgba(255,255,255,0.10);
+		color: rgba(245,247,255,0.92);
+	}}
+	QLabel#HomeActivityBadge[variant="active"] {{
+		background: rgba(34,197,94,0.14);
+		border: 1px solid rgba(34,197,94,0.30);
+		color: rgba(34,197,94,0.96);
+	}}
+	QLabel#HomeActivityBadge[variant="success"] {{
+		background: rgba(34,197,94,0.14);
+		border: 1px solid rgba(34,197,94,0.30);
+		color: rgba(34,197,94,0.96);
+	}}
+	QLabel#HomeActivityBadge[variant="warn"] {{
+		background: rgba(245,197,66,0.14);
+		border: 1px solid rgba(245,197,66,0.30);
+		color: rgba(245,197,66,0.98);
+	}}
+
 	/* ---- Learning view text + progress ---- */
 	QLabel#SectionTitle {{
 		font-size: {h2}px;

@@ -187,13 +187,6 @@ class MainWindow(QMainWindow):
 			except Exception:
 				pass
 
-		# When XP/rank changes (e.g. after a solve), refresh the sidebar badge.
-		try:
-			if hasattr(state, "player_stats_changed"):
-				state.player_stats_changed.connect(self.sidebar.refresh_auth)
-		except Exception:
-			pass
-
 		# Profile needs to be able to force-refresh auth UI after logout.
 		try:
 			self.profile.auth_changed.connect(self._on_auth_changed)

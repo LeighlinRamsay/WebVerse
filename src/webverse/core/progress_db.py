@@ -204,9 +204,9 @@ def _api_base() -> str:
 
 def _timeout() -> float:
 	try:
-		return float(os.getenv("WEBVERSE_API_TIMEOUT", "6") or 6)
+		return float(os.getenv("WEBVERSE_API_TIMEOUT", "10") or 10)
 	except Exception:
-		return 6.0
+		return 10.0
 
 
 def _settings() -> QSettings:

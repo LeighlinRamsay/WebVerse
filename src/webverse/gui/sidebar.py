@@ -4,11 +4,20 @@ from __future__ import annotations
 import os
 import threading
 
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QMessageBox
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QMessageBox, QSizePolicy
 from PyQt5.QtCore import Qt, QSettings, pyqtSignal, QTimer
 
 from webverse.gui.widgets.auth_dialog import LoginDialog, SignupDialog, try_device_login
 from webverse.core import progress_db
+
+_RANK_TIERS = [
+	(0, "Recruit"),
+	(500, "Operator"),
+	(1500, "Specialist"),
+	(3500, "Veteran"),
+	(7000, "Elite"),
+	(12000, "Legend"),
+]
 
 class _ClickableFrame(QFrame):
 	def mousePressEvent(self, e):
@@ -46,6 +55,10 @@ class Sidebar(QFrame):
 		self.setObjectName("Sidebar")
 		self.stack = stack
 
+		self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+		self.setMinimumWidth(340)
+		self.setMaximumWidth(340)
+
 		self._settings = QSettings("WebVerse", "WebVerse")
 		self._profile_index = profile_index
 		self._show_learning = bool(show_learning)
@@ -75,11 +88,13 @@ class Sidebar(QFrame):
 			self._page_for_button.append(int(stack_idx))
 			layout.addWidget(btn)
 
-		layout.addStretch(1)
-
 		# Auth block (replaces Docker badge)
 		self.auth_badge = QFrame()
 		self.auth_badge.setObjectName("AuthBadge")
+
+		self.auth_badge.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+		self.auth_badge.setFixedHeight(92)
+
 		al = QHBoxLayout(self.auth_badge)
 		al.setContentsMargins(10, 8, 10, 8)
 		al.setSpacing(8)
@@ -96,6 +111,9 @@ class Sidebar(QFrame):
 		self.profile_badge.setObjectName("ProfileBadge")
 		self.profile_badge.setAttribute(Qt.WA_StyledBackground, True)
 
+		self.profile_badge.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+		self.profile_badge.setFixedHeight(72)
+
 		pl = QVBoxLayout(self.profile_badge)
 		pl.setContentsMargins(12, 10, 12, 10)
 		pl.setSpacing(6)
@@ -111,11 +129,14 @@ class Sidebar(QFrame):
 
 		self.profile_xp_bar = QFrame()
 		self.profile_xp_bar.setObjectName("XPBar")
-		xb = QHBoxLayout(self.profile_xp_bar)
-		xb.setContentsMargins(0, 0, 0, 0)
-		self.profile_xp_fill = QFrame()
+		
+		self.profile_xp_bar.setFixedHeight(6)
+		self.profile_xp_bar.setAttribute(Qt.WA_StyledBackground, True)
+		self.profile_xp_bar.setProperty("xp_pct", 0.02)
+
+		self.profile_xp_fill = QFrame(self.profile_xp_bar)
 		self.profile_xp_fill.setObjectName("XPFill")
-		xb.addWidget(self.profile_xp_fill)
+		self.profile_xp_fill.setAttribute(Qt.WA_StyledBackground, True)
 		pl.addWidget(self.profile_xp_bar)
 
 		self.profile_hint = QLabel("Click to view your stats →")
@@ -127,13 +148,18 @@ class Sidebar(QFrame):
 		al.addWidget(self.signup_btn, 1)
 		al.addWidget(self.login_btn, 1)
 		al.addWidget(self.profile_badge, 2)
-		layout.addWidget(self.auth_badge)
+
+		layout.addStretch(1)
+		layout.addSpacing(10)
 
 		self.signup_btn.clicked.connect(self._open_signup)
 		self.login_btn.clicked.connect(self._open_login)
 
 		# Backwards-compat: keep a hidden docker badge object so any existing
 		# code calling set_docker_status() won't crash.
+
+		layout.addWidget(self.auth_badge, 0)
+
 		self.docker_badge = QFrame()
 		self.docker_badge.setObjectName("DockerBadge")
 		self.docker_text = QLabel("Docker: —")
@@ -173,10 +199,39 @@ class Sidebar(QFrame):
 	def refresh_auth(self):
 		self._refresh_auth_ui()
 		self._apply_access_lock()
+		self.refresh_mission_feed()
+
+	def resizeEvent(self, event):
+		super().resizeEvent(event)
+		try:
+			pct = float(self.profile_xp_bar.property("xp_pct") or 0.02)
+		except Exception:
+			pct = 0.02
+		self._layout_profile_xp_fill(pct)
+
+	def _layout_profile_xp_fill(self, pct: float):
+		try:
+			pct = max(0.02, min(1.0, float(pct)))
+		except Exception:
+			pct = 0.02
+
+		try:
+			bar_w = max(0, self.profile_xp_bar.width())
+			bar_h = max(0, self.profile_xp_bar.height())
+			fill_w = max(8, int(bar_w * pct))
+			self.profile_xp_fill.setGeometry(0, 0, fill_w, bar_h)
+		except Exception:
+			pass
 
 	def set_page(self, index: int):
 		# If the device is linked to an account but the user is logged out, disable
 		# certain pages (do NOT hard-block the entire GUI).
+
+		if int(index) == 3:
+			# Lab Detail should not light up any sidebar button, but it is still a valid page.
+			self.stack.setCurrentIndex(index)
+			return
+
 		if self._is_access_locked_for_index(index):
 			# Best-effort: nudge them to login instead of navigating.
 			try:
@@ -266,6 +321,7 @@ class Sidebar(QFrame):
 
 		# Profile badge itself should only be clickable when logged in.
 		try:
+			locked = self._is_access_locked_for_index(self._profile_index)
 			self.profile_badge.setEnabled((not locked) and self._is_logged_in())
 			self.profile_badge.setProperty("locked", bool(locked))
 			self.profile_badge.style().unpolish(self.profile_badge)
@@ -342,23 +398,21 @@ class Sidebar(QFrame):
 			self.profile_title.setText(label)
 			self.profile_meta.setText(f"{xp} XP")
 
-			# best-effort fill width based on next threshold (rough)
-			pct = 0.12
-			if xp >= 12000:
-				pct = 1.0
-			elif xp >= 7000:
-				pct = min(1.0, (xp - 7000) / 5000.0)
-			elif xp >= 3500:
-				pct = min(1.0, (xp - 3500) / 3500.0)
-			elif xp >= 1500:
-				pct = min(1.0, (xp - 1500) / 2000.0)
-			elif xp >= 500:
-				pct = min(1.0, (xp - 500) / 1000.0)
-			else:
-				pct = min(1.0, xp / 500.0)
+			# Match ProfileView behavior:
+			# fill is based on xp / next_rank_xp, not tier-relative progress
+			next_rank_xp = None
+			for threshold, _name in _RANK_TIERS:
+				if xp < int(threshold):
+					next_rank_xp = int(threshold)
+					break
 
-			w = max(8, int(220 * max(0.02, min(1.0, pct))))
-			self.profile_xp_fill.setFixedWidth(w)
+			if next_rank_xp is None:
+				pct = 1.0
+			else:
+				pct = min(1.0, float(xp) / float(next_rank_xp))
+
+			self.profile_xp_bar.setProperty("xp_pct", float(pct))
+			QTimer.singleShot(0, lambda p=float(pct): self._layout_profile_xp_fill(p))
 
 		# Always keep locks consistent with auth UI state (runs last)
 		self._apply_access_lock()
